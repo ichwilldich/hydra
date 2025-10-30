@@ -19,7 +19,14 @@ struct Context {
   client: Client,
 }
 
-pub async fn run(client: Client) {
+pub async fn run(client: Option<Client>) {
+  let client = match client {
+    Some(c) => c,
+    None => Client::try_default()
+      .await
+      .expect("Failed to create K8s client"),
+  };
+
   let dummy = Api::<Document>::all(client.clone());
 
   if let Err(e) = dummy.list(&ListParams::default().limit(1)).await {

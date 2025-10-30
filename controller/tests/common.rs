@@ -46,7 +46,7 @@ pub async fn launch_app() -> Env {
   let port = app.port();
 
   let (server, client) = init_control_plane();
-  app.kube = client.clone();
+  app.kube = Some(client.clone());
 
   spawn(app.run());
   sleep(Duration::from_millis(100)).await; // wait for server to start

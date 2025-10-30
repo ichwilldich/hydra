@@ -22,7 +22,7 @@ mod crd;
 pub struct App {
   app: Router,
   listener: TcpListener,
-  pub kube: Client,
+  pub kube: Option<Client>,
 }
 
 impl App {
@@ -45,14 +45,10 @@ impl App {
       app = app.metrics(metrics_name, handle, metrics_labels).await;
     }
 
-    let kube = Client::try_default()
-      .await
-      .expect("Failed to create K8s client");
-
     Self {
       app,
       listener,
-      kube,
+      kube: None,
     }
   }
 
