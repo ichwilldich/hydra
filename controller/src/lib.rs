@@ -13,7 +13,7 @@ use tracing::{info, instrument};
 
 use crate::config::Config;
 
-pub use crd::apply_crds;
+pub use crd::crds;
 
 mod config;
 mod controller;

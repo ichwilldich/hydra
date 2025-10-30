@@ -4,11 +4,12 @@ use centaurus::error::{ErrorReport, Result};
 use futures::StreamExt;
 use kube::{
   Api, Client, ResourceExt,
+  api::ListParams,
   runtime::{Controller, controller::Action, finalizer, watcher::Config},
 };
 use tracing::{error, info, instrument};
 
-use crate::crd::Dummy;
+use crate::crd::Document;
 
 mod error;
 
@@ -19,9 +20,9 @@ struct Context {
 }
 
 pub async fn run(client: Client) {
-  let dummy = Api::<Dummy>::all(client.clone());
+  let dummy = Api::<Document>::all(client.clone());
 
-  if let Err(e) = dummy.list(&Default::default()).await {
+  if let Err(e) = dummy.list(&ListParams::default().limit(1)).await {
     error!("Failed to list Dummy CRD instances: {}", e);
     error!("Ensure that the CRD is applied to the cluster");
     std::process::exit(1);
@@ -33,6 +34,7 @@ pub async fn run(client: Client) {
       .run(reconcile, error_policy, Arc::new(Context { client }))
   );
 
+  info!("Starting controller");
   while let Some(result) = stream.next().await {
     if let Err(e) = result {
       error!("Error processing stream item: {}", e);
@@ -41,9 +43,9 @@ pub async fn run(client: Client) {
 }
 
 #[instrument(skip(dummy, ctx))]
-async fn reconcile(dummy: Arc<Dummy>, ctx: Arc<Context>) -> Result<Action> {
+async fn reconcile(dummy: Arc<Document>, ctx: Arc<Context>) -> Result<Action> {
   let ns = dummy.namespace().unwrap(); // Dummy is namespaced
-  let api: Api<Dummy> = Api::namespaced(ctx.client.clone(), &ns);
+  let api: Api<Document> = Api::namespaced(ctx.client.clone(), &ns);
 
   info!(
     "Reconciling Dummy: {} in namespace {}",
@@ -61,7 +63,7 @@ async fn reconcile(dummy: Arc<Dummy>, ctx: Arc<Context>) -> Result<Action> {
   .map_err(|e| e.into())
 }
 
-fn error_policy(dummy: Arc<Dummy>, error: &ErrorReport, _ctx: Arc<Context>) -> Action {
+fn error_policy(dummy: Arc<Document>, error: &ErrorReport, _ctx: Arc<Context>) -> Action {
   error!(
     "Reconciliation error for Dummy {}: {:?}",
     dummy.name_any(),
@@ -70,17 +72,17 @@ fn error_policy(dummy: Arc<Dummy>, error: &ErrorReport, _ctx: Arc<Context>) -> A
   Action::requeue(Duration::from_secs(5 * 60))
 }
 
-impl Dummy {
+impl Document {
   #[instrument(skip(self))]
   async fn reconcile(&self) -> Result<Action> {
-    info!("Reconciling Dummy: {}", self.name_any());
+    info!("Reconciling Document: {}", self.name_any());
     // Add your reconciliation logic here
     Ok(Action::requeue(Duration::from_secs(5 * 60)))
   }
 
   #[instrument(skip(self))]
   async fn cleanup(&self) -> Result<Action> {
-    info!("Cleaning up Dummy: {}", self.name_any());
+    info!("Cleaning up Document: {}", self.name_any());
     // Add your cleanup logic here
     Ok(Action::requeue(Duration::from_secs(5 * 60)))
   }

@@ -1,9 +1,10 @@
 use std::{env::set_var, time::Duration};
 
-use controller::{App, apply_crds};
-use envtest::Environment;
+use controller::{App, crds};
+use envtest::{Environment, Server};
 use kube::{Client, config::Kubeconfig};
 use tokio::{spawn, time::sleep};
+use tracing::info;
 
 pub fn prepare_env() {
   unsafe {
@@ -11,35 +12,53 @@ pub fn prepare_env() {
   }
 }
 
-pub struct Port {
+/// This needs to be in scope for the entire test so the fake control plane
+/// is not dropped while the test is running.
+pub struct Env {
   pub port: u16,
+  // required to keep the test environment alive
+  #[allow(dead_code)]
+  server: Server,
+  pub client: Client,
 }
 
-pub async fn init_control_plane() -> Client {
-  let env = Environment::default();
+impl Drop for Env {
+  fn drop(&mut self) {
+    info!("Tearing down test control plane");
+  }
+}
+
+pub fn init_control_plane() -> (Server, Client) {
+  info!("Initializing test control plane");
+  let mut env = Environment::default();
+  env.with_crds(crds()).expect("Failed to add CRDs");
+
   let server = env.create().expect("Failed to create test environment");
   let kubeconfig: Kubeconfig = server.kubeconfig().expect("Failed to get kubeconfig");
   let client = Client::try_from(kubeconfig).expect("Failed to create kube client");
-  apply_crds(client.clone())
-    .await
-    .expect("Failed to apply CRDs");
-  client
+
+  info!("Test control plane initialized");
+  (server, client)
 }
 
-pub async fn launch_app() -> Port {
+pub async fn launch_app() -> Env {
   let mut app = App::new().await;
   let port = app.port();
 
-  let client = init_control_plane().await;
-  app.kube = client;
+  let (server, client) = init_control_plane();
+  app.kube = client.clone();
 
   spawn(app.run());
   sleep(Duration::from_millis(100)).await; // wait for server to start
 
-  Port { port }
+  Env {
+    port,
+    server,
+    client,
+  }
 }
 
-pub async fn run() -> Port {
+pub async fn run() -> Env {
   prepare_env();
   launch_app().await
 }
