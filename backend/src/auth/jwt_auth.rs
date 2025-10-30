@@ -1,10 +1,10 @@
 use std::{fmt::Debug, marker::PhantomData, str::FromStr};
 
-use axum::{
-  RequestPartsExt,
-  extract::{FromRequestParts, OptionalFromRequestParts},
+use axum::extract::{FromRequestParts, OptionalFromRequestParts};
+use centaurus::{
+  auth::jwt::jwt_from_request, bail, db::init::Connection, error::ErrorReport,
+  state::extract::StateExtractExt,
 };
-use centaurus::{auth::jwt::jwt_from_request, bail, db::init::Connection, error::ErrorReport};
 use http::request::Parts;
 use tracing::instrument;
 use uuid::Uuid;
@@ -55,8 +55,8 @@ impl<S: Sync, T: AuthSource> FromRequestParts<S> for JwtAuth<T> {
   async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
     let token = jwt_from_request(parts, COOKIE_NAME).await?;
 
-    let state = parts.extract::<JwtState>().await.unwrap();
-    let Ok(db) = parts.extract::<Connection>().await;
+    let state = parts.extract_state::<JwtState>().await;
+    let db = parts.extract_state::<Connection>().await;
 
     let Ok(valid) = db.invalid_jwt().is_token_valid(&token).await else {
       bail!("failed to validate jwt");

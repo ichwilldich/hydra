@@ -6,6 +6,11 @@ edition = "2024"
 [dependencies]
 serde = { workspace = true }
 sea-orm = { workspace = true }
+tokio = { workspace = true }
+dotenv = { workspace = true }
+tracing = { workspace = true }
+figment = { workspace = true }
+serde_json = { workspace = true }
 centaurus = { version = "0.4.0", features = [
   "axum",
   "logging",
@@ -27,13 +32,8 @@ axum = { version = "0.8.4", features = [
   "multipart",
 ] }
 axum-extra = { version = "0.10.1", features = ["cookie", "typed-header"] }
-tracing-subscriber = "=0.3.19"
-tracing = "0.1.41"
 tower-http = { version = "0.6.6", features = ["fs"] }
 http = "1.3.1"
-tokio = { version = "1.47.1", features = ["signal", "rt-multi-thread", "fs"] }
-dotenv = "0.15.0"
-serde_json = "1.0.143"
 base64 = "0.22.1"
 chrono = { version = "0.4.42", features = ["serde"] }
 eyre = "0.6.12"
@@ -54,7 +54,6 @@ reqwest = { version = "0.12.23", features = [
   "system-proxy",
   "multipart",
 ], default-features = false }
-figment = { version = "0.10.19", features = ["env", "toml"] }
 
 [features]
 # only used for testing purposes

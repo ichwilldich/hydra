@@ -21,8 +21,13 @@ jobs:
       id-token: write
       security-events: write
 
-    env:
-      IMAGE: ${{ github.repository }}/hydra
+    strategy:
+      matrix:
+        items:
+          - image: ${{ github.repository }}/hydra
+            dockerfile: ./Dockerfile
+          - image: ${{ github.repository }}/hydra-controller
+            dockerfile: ./controller/Dockerfile
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -43,13 +48,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE }}
+          images: ${{ env.REGISTRY }}/${{ matrix.items.image }}
 
       - name: Build and push
         id: push
         uses: docker/build-push-action@v6
         with:
           context: ./
+          file: ${{ matrix.items.dockerfile }}
           push: ${{ github.event_name != 'pull_request' }}
           load: ${{ github.event_name == 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -61,7 +67,7 @@ jobs:
         uses: actions/attest-build-provenance@v3
         if: github.event_name != 'pull_request'
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE }}
+          subject-name: ${{ env.REGISTRY }}/${{ matrix.items.image }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 

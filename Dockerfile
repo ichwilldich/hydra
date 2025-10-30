@@ -17,6 +17,14 @@ COPY frontend/static ./static
 
 RUN npm run build
 
+FROM ghcr.io/profiidev/images/rust-gnu-builder:main AS toml-patcher
+
+WORKDIR /
+COPY ./Cargo.toml ./
+
+# replace members with only backend members
+RUN sed -i 's/\(^members = \[\).*\(]\)$/\1\n"backend","backend\/entity","backend\/migration"\n\2/' Cargo.toml
+
 FROM ghcr.io/profiidev/images/rust-gnu-builder:main AS backend-planner
 
 ARG TARGET
@@ -25,7 +33,8 @@ ARG RUSTFLAGS
 COPY backend/Cargo.toml backend/
 COPY backend/entity/Cargo.toml backend/entity/
 COPY backend/migration/Cargo.toml backend/migration/
-COPY ./Cargo.lock ./Cargo.toml ./
+COPY ./Cargo.lock ./
+COPY --from=toml-patcher /Cargo.toml ./
 
 RUN cargo chef prepare --recipe-path recipe.json --bin backend
 
@@ -46,7 +55,8 @@ COPY backend/entity/Cargo.toml backend/entity/
 COPY backend/entity/src backend/entity/src
 COPY backend/migration/Cargo.toml backend/migration/
 COPY backend/migration/src backend/migration/src
-COPY ./Cargo.lock ./Cargo.toml ./
+COPY ./Cargo.lock ./
+COPY --from=toml-patcher /Cargo.toml ./
 
 RUN cd backend && cargo build --release --target $TARGET
 RUN mv ./target/$TARGET/release/backend ./app

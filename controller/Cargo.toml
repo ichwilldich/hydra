@@ -1,0 +1,33 @@
+[package]
+name = "controller"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { workspace = true }
+tokio = { workspace = true }
+dotenv = { workspace = true }
+tracing = { workspace = true }
+figment = { workspace = true }
+serde_json = { workspace = true }
+axum = { version = "0.8.4", features = ["tracing", "macros"] }
+k8s-openapi = { version = "0.26.0", features = ["latest", "schemars"] }
+kube = { version = "2.0.1", features = ["runtime", "derive"] }
+schemars = "1.0.4"
+centaurus = { version = "0.4.2", features = ["axum", "logging"] }
+thiserror = "2.0.17"
+futures = "0.3.31"
+serde_yaml = "0.9.34"
+
+[dev-dependencies]
+envtest = "0.0.1"
+reqwest = { version = "0.12.23", features = [
+  "rustls-tls",
+  "charset",
+  "http2",
+  "system-proxy",
+], default-features = false }
+
+[[bin]]
+name = "controller"
+path = "src/main.rs"
