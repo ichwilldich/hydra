@@ -57,6 +57,10 @@ impl App {
     info!("Starting sever");
     run_app(self.app_listener, self.app).await;
   }
+
+  pub fn port(&self) -> u16 {
+    self.app_listener.local_addr().unwrap().port()
+  }
 }
 
 #[instrument(skip(config))]
