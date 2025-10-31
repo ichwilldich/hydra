@@ -7,12 +7,25 @@
     Toaster
   } from 'positron-components/components/ui';
   import { page } from '$app/state';
+  import { onMount } from 'svelte';
+  import { test_token } from '$lib/backend/auth.svelte';
+  import { goto } from '$app/navigation';
 
   interface Props {
     children?: import('svelte').Snippet;
   }
 
   let { children }: Props = $props();
+
+  onMount(() => {
+    test_token().then((valid) => {
+      console.log('Token valid:', valid);
+      // can also be undefined if there was an error
+      if (valid === false) {
+        goto('/login');
+      }
+    });
+  });
 
   const noLayout = ['/login', '/oauth', '/oauth/logout'];
 </script>

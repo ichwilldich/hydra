@@ -55,3 +55,22 @@ export const password_login = async (name: string, password: string) => {
     return res;
   }
 };
+
+export const logout = async () => {
+  let res = await post<undefined>(
+    '/api/auth/logout',
+    ResponseType.None,
+    ContentType.Json,
+    ''
+  );
+
+  return res;
+};
+
+export const test_token = async () => {
+  let res = await get<boolean>('/api/auth/test_token', ResponseType.Json);
+
+  if (typeof res === 'boolean') {
+    return res;
+  }
+};

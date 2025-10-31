@@ -5,6 +5,8 @@ services:
     volumes:
       - .:/app
     tty: true
+    ports:
+      - "5174:5174"
     networks:
       - proxy
     # command: npm install

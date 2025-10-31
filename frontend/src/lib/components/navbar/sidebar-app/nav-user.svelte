@@ -8,6 +8,8 @@
   import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
   import LogOutIcon from '@lucide/svelte/icons/log-out';
   import { Settings } from '@lucide/svelte';
+  import { logout } from '$lib/backend/auth.svelte';
+  import { goto } from '$app/navigation';
 
   interface Props {
     name: string;
@@ -19,6 +21,11 @@
   let name_short = name.slice(0, 2).toUpperCase();
 
   let sidebar = Sidebar.useSidebar();
+
+  const logout_user = async () => {
+    await logout();
+    goto('/login');
+  };
 </script>
 
 <Sidebar.Menu>
@@ -63,7 +70,7 @@
         </DropdownMenu.Label>
         <DropdownMenu.Separator />
         <DropdownMenu.Group>
-          <DropdownMenu.Item>
+          <DropdownMenu.Item onclick={() => goto('/account')}>
             <Settings />
             Account
           </DropdownMenu.Item>
@@ -73,7 +80,7 @@
           </DropdownMenu.Item>
         </DropdownMenu.Group>
         <DropdownMenu.Separator />
-        <DropdownMenu.Item>
+        <DropdownMenu.Item onclick={logout_user}>
           <LogOutIcon />
           Log out
         </DropdownMenu.Item>

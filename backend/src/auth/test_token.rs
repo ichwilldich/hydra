@@ -11,7 +11,8 @@ pub fn router() -> Router {
 #[instrument(skip(cookies))]
 async fn test_token(auth: Option<JwtAuth>, mut cookies: CookieJar) -> (CookieJar, Json<bool>) {
   if auth.is_none() {
-    cookies = cookies.remove(Cookie::from(COOKIE_NAME));
+    let cookie = Cookie::build((COOKIE_NAME, "")).path("/").build();
+    cookies = cookies.remove(cookie);
 
     (cookies, Json(false))
   } else {
