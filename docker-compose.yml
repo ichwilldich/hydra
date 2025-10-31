@@ -15,14 +15,15 @@ services:
     image: ghcr.io/profiidev/images/rust-musl-watch:main
     pull_policy: always
     volumes:
-      - .:/app
+      - ./backend:/app/backend
+    working_dir: /app/backend
     networks:
       - proxy
     ports:
-      - '5173:8000'
+      - "5173:8000"
     tty: true
-    entrypoint: ['tini', '--']
-    command: ['cargo', 'watch', '-x', 'run', '-C', 'backend']
+    entrypoint: ["tini", "--"]
+    command: ["cargo", "watch", "-x", "run"]
     environment:
       - RUST_LIB_BACKTRACE=0
 
