@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
-use centaurus::{FromReqExtension, config::BaseConfig, db::config::DBConfig};
+use axum::{Extension, extract::FromRequestParts};
+use centaurus::{config::BaseConfig, db::config::DBConfig};
 use figment::{
   Figment,
   providers::{Env, Serialized},
@@ -9,7 +10,10 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use url::Url;
 
-#[derive(Deserialize, Serialize, Clone, FromReqExtension, Debug)]
+use crate::connector::ConnectorType;
+
+#[derive(Deserialize, Serialize, Clone, FromRequestParts, Debug)]
+#[from_request(via(Extension))]
 pub struct EnvConfig {
   #[serde(flatten)]
   pub base: BaseConfig,
@@ -19,6 +23,9 @@ pub struct EnvConfig {
   pub auth: AuthConfig,
 
   pub base_url: Url,
+
+  // deployment
+  pub connector: ConnectorType,
 
   // storage
   pub storage_path: PathBuf,
@@ -47,6 +54,7 @@ impl Default for EnvConfig {
       db: DBConfig::default(),
       auth: AuthConfig::default(),
       base_url: Url::parse("http://localhost:8080").unwrap(),
+      connector: ConnectorType::Docker,
       storage_path: PathBuf::from("/data"),
       metrics_enabled: true,
       metrics_name: "hydra".to_string(),

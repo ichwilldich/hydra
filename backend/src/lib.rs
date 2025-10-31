@@ -12,10 +12,13 @@ use centaurus::{
 use tokio::{fs, net::TcpListener};
 use tracing::{info, instrument};
 
+pub use crate::cli::Cli;
 use crate::config::{AppConfig, EnvConfig};
 
 mod auth;
+mod cli;
 mod config;
+mod connector;
 mod db;
 mod frontend;
 mod user;

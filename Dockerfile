@@ -75,6 +75,6 @@ WORKDIR /app
 COPY --from=frontend-builder /app/frontend/build /app/frontend
 COPY --from=frontend-builder /app/frontend/package.json /app/frontend/package.json
 COPY --from=frontend-builder /app/package-lock.json /app/package-lock.json
-COPY --from=backend-builder /app/app /usr/local/bin/
+COPY --from=backend-builder /app/app /usr/local/bin/hydra
 
-CMD ["app"]
+CMD ["hydra", "server"]
