@@ -1,17 +1,11 @@
-<script lang="ts" module>
-  import { Gauge, DatabaseIcon } from '@lucide/svelte';
-  // This is sample data.
-  const user = {
-    name: 'shadcn',
-    email: 'm@example.com'
-  };
-</script>
-
 <script lang="ts">
   import NavGroup from './nav-group.svelte';
   import NavUser from './nav-user.svelte';
   import Header from './header.svelte';
   import { Sidebar } from 'positron-components/components/ui';
+  import { Gauge, DatabaseIcon } from '@lucide/svelte';
+  import { onMount } from 'svelte';
+  import { user_info, type UserInfo } from '$lib/backend/user.svelte';
 
   let top_nav = [
     {
@@ -28,6 +22,13 @@
       icon: DatabaseIcon
     }
   ];
+
+  let user: UserInfo | undefined = $state();
+  onMount(() => {
+    user_info().then((data) => {
+      user = data;
+    });
+  });
 </script>
 
 <Sidebar.Root collapsible="icon">
@@ -39,7 +40,7 @@
     <NavGroup items={deployments} title="Deployments" />
   </Sidebar.Content>
   <Sidebar.Footer>
-    <NavUser {...user} />
+    <NavUser {user} />
   </Sidebar.Footer>
   <Sidebar.Rail />
 </Sidebar.Root>

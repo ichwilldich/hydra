@@ -2,7 +2,8 @@
   import {
     Avatar,
     DropdownMenu,
-    Sidebar
+    Sidebar,
+    Skeleton
   } from 'positron-components/components/ui';
   import BellIcon from '@lucide/svelte/icons/bell';
   import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
@@ -10,15 +11,14 @@
   import { Settings } from '@lucide/svelte';
   import { logout } from '$lib/backend/auth.svelte';
   import { goto } from '$app/navigation';
+  import type { UserInfo } from '$lib/backend/user.svelte';
 
   interface Props {
-    name: string;
-    email: string;
-    avatar?: string;
+    user?: UserInfo;
   }
 
-  let { name, email, avatar }: Props = $props();
-  let name_short = name.slice(0, 2).toUpperCase();
+  let { user }: Props = $props();
+  let name_short = $derived(user?.name.slice(0, 2).toUpperCase());
 
   let sidebar = Sidebar.useSidebar();
 
@@ -38,14 +38,7 @@
             class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             {...props}
           >
-            <Avatar.Root class="size-8 rounded-lg">
-              <Avatar.Image src={avatar} alt={name} />
-              <Avatar.Fallback class="rounded-lg">{name_short}</Avatar.Fallback>
-            </Avatar.Root>
-            <div class="grid flex-1 text-left text-sm leading-tight">
-              <span class="truncate font-medium">{name}</span>
-              <span class="truncate text-xs">{email}</span>
-            </div>
+            {@render user_snippet()}
             <ChevronsUpDownIcon class="ml-auto size-4" />
           </Sidebar.MenuButton>
         {/snippet}
@@ -58,14 +51,7 @@
       >
         <DropdownMenu.Label class="p-0 font-normal">
           <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-            <Avatar.Root class="size-8 rounded-lg">
-              <Avatar.Image src={avatar} alt={name} />
-              <Avatar.Fallback class="rounded-lg">{name_short}</Avatar.Fallback>
-            </Avatar.Root>
-            <div class="grid flex-1 text-left text-sm leading-tight">
-              <span class="truncate font-medium">{name}</span>
-              <span class="truncate text-xs">{email}</span>
-            </div>
+            {@render user_snippet()}
           </div>
         </DropdownMenu.Label>
         <DropdownMenu.Separator />
@@ -88,3 +74,19 @@
     </DropdownMenu.Root>
   </Sidebar.MenuItem>
 </Sidebar.Menu>
+
+{#snippet user_snippet()}
+  <Avatar.Root class="size-8 rounded-lg">
+    <Avatar.Image src={''} alt={user?.name ?? '?'} />
+    <Avatar.Fallback class="rounded-lg">{name_short}</Avatar.Fallback>
+  </Avatar.Root>
+  <div class="grid flex-1 text-left text-sm leading-tight">
+    {#if user}
+      <span class="truncate font-medium">{user.name}</span>
+      <span class="truncate text-xs">{user.email}</span>
+    {:else}
+      <Skeleton class="h-4 w-20" />
+      <Skeleton class="mt-1 h-3 w-24" />
+    {/if}
+  </div>
+{/snippet}

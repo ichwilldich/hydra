@@ -252,6 +252,8 @@ struct TokenRes {
 #[derive(Deserialize)]
 pub struct AuthInfo {
   pub sub: String,
+  pub email: String,
+  pub name: String,
 }
 
 #[instrument(skip(jwt, config, oidc_state, cookies))]
@@ -314,7 +316,8 @@ async fn oidc_callback(
       let res: AuthInfo = res.json().await?;
 
       debug!("OIDC user authenticated: {}", res.sub);
-      cookies = cookies.add(jwt.create_token::<AllAuth>(res.sub, AuthType::Oidc)?);
+      cookies =
+        cookies.add(jwt.create_token::<AllAuth>(res.sub, AuthType::Oidc, res.name, res.email)?);
 
       ("/", None)
     } else {

@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
+import type { LayoutServerLoad } from './$types';
 
-export const load: PageServerLoad = ({ cookies, url }) => {
+export const load: LayoutServerLoad = ({ cookies, url, fetch }) => {
   // redirect to /login when there is no auth_token cookie
   const authToken = cookies.get('auth_token');
   let path = url.pathname;

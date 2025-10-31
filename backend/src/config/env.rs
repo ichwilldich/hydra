@@ -67,6 +67,7 @@ pub struct AuthConfig {
   // initial user
   pub initial_user_username: String,
   pub initial_user_password: String,
+  pub initial_user_email: String,
   pub overwrite_initial_user: bool,
 }
 
@@ -78,6 +79,7 @@ impl Default for AuthConfig {
       auth_pepper: "hydra_pepper_123456".to_string(),
       initial_user_username: "admin".to_string(),
       initial_user_password: "admin".to_string(),
+      initial_user_email: "admin@example.com".to_string(),
       overwrite_initial_user: false,
     }
   }

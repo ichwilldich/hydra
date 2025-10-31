@@ -18,6 +18,7 @@ mod auth;
 mod config;
 mod db;
 mod frontend;
+mod user;
 
 #[derive(Debug)]
 pub struct App {
@@ -71,6 +72,7 @@ async fn router(config: &EnvConfig) -> Router {
       "/api",
       Router::new()
         .nest("/auth", auth::router())
+        .nest("/user", user::router())
         .merge(health::router())
         .metrics_route()
         .await,

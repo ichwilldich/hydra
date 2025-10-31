@@ -42,8 +42,9 @@ impl AuthSource for InternalAuth {
 
 #[derive(Debug)]
 pub struct JwtAuth<T: AuthSource = AllAuth> {
-  #[allow(unused)]
   pub user_id: T::UserID,
+  pub name: String,
+  pub email: String,
   pub exp: i64,
   _m: PhantomData<T>,
 }
@@ -78,6 +79,8 @@ impl<S: Sync, T: AuthSource> FromRequestParts<S> for JwtAuth<T> {
 
     Ok(JwtAuth {
       user_id,
+      name: claims.name,
+      email: claims.email,
       exp: claims.exp,
       _m: PhantomData,
     })
@@ -147,7 +150,9 @@ mod test {
     let db = test_db().await;
     let jwt_state = JwtState::init(&config, &db).await;
 
-    let cookie = jwt_state.create_token::<In>(id.clone(), r#type).unwrap();
+    let cookie = jwt_state
+      .create_token::<In>(id.clone(), r#type, String::new(), String::new())
+      .unwrap();
     let token = cookie.value().to_string();
 
     let req = Request::builder()
@@ -195,7 +200,7 @@ mod test {
 
     let user_id = Uuid::new_v4();
     let cookie = jwt_state
-      .create_token::<InternalAuth>(user_id, AuthType::Oidc)
+      .create_token::<InternalAuth>(user_id, AuthType::Oidc, String::new(), String::new())
       .unwrap();
     let token = cookie.value().to_string();
     let exp = Utc::now() + Duration::seconds(config.auth.jwt_exp);
