@@ -8,5 +8,8 @@ export default defineConfig({
     hmr: {
       port: 5174
     }
+  },
+  define: {
+    __version__: JSON.stringify(process.env.npm_package_version)
   }
 });

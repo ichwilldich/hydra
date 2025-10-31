@@ -1,13 +1,23 @@
 <script lang="ts">
-  import { Avatar } from 'positron-components/components/ui';
-  import { DropdownMenu } from 'positron-components/components/ui';
-  import { Sidebar } from 'positron-components/components/ui';
-  import BadgeCheckIcon from '@lucide/svelte/icons/badge-check';
+  import {
+    Avatar,
+    DropdownMenu,
+    Sidebar
+  } from 'positron-components/components/ui';
   import BellIcon from '@lucide/svelte/icons/bell';
   import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
   import LogOutIcon from '@lucide/svelte/icons/log-out';
-  let { user }: { user: { name: string; email: string; avatar: string } } =
-    $props();
+  import { Settings } from '@lucide/svelte';
+
+  interface Props {
+    name: string;
+    email: string;
+    avatar?: string;
+  }
+
+  let { name, email, avatar }: Props = $props();
+  let name_short = name.slice(0, 2).toUpperCase();
+
   let sidebar = Sidebar.useSidebar();
 </script>
 
@@ -22,12 +32,12 @@
             {...props}
           >
             <Avatar.Root class="size-8 rounded-lg">
-              <Avatar.Image src={user.avatar} alt={user.name} />
-              <Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
+              <Avatar.Image src={avatar} alt={name} />
+              <Avatar.Fallback class="rounded-lg">{name_short}</Avatar.Fallback>
             </Avatar.Root>
             <div class="grid flex-1 text-left text-sm leading-tight">
-              <span class="truncate font-medium">{user.name}</span>
-              <span class="truncate text-xs">{user.email}</span>
+              <span class="truncate font-medium">{name}</span>
+              <span class="truncate text-xs">{email}</span>
             </div>
             <ChevronsUpDownIcon class="ml-auto size-4" />
           </Sidebar.MenuButton>
@@ -42,19 +52,19 @@
         <DropdownMenu.Label class="p-0 font-normal">
           <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
             <Avatar.Root class="size-8 rounded-lg">
-              <Avatar.Image src={user.avatar} alt={user.name} />
-              <Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
+              <Avatar.Image src={avatar} alt={name} />
+              <Avatar.Fallback class="rounded-lg">{name_short}</Avatar.Fallback>
             </Avatar.Root>
             <div class="grid flex-1 text-left text-sm leading-tight">
-              <span class="truncate font-medium">{user.name}</span>
-              <span class="truncate text-xs">{user.email}</span>
+              <span class="truncate font-medium">{name}</span>
+              <span class="truncate text-xs">{email}</span>
             </div>
           </div>
         </DropdownMenu.Label>
         <DropdownMenu.Separator />
         <DropdownMenu.Group>
           <DropdownMenu.Item>
-            <BadgeCheckIcon />
+            <Settings />
             Account
           </DropdownMenu.Item>
           <DropdownMenu.Item>

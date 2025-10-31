@@ -7,8 +7,6 @@ services:
     tty: true
     networks:
       - proxy
-    ports:
-      - '5174:5174'
     # command: npm install
     command: npm run dev -- --host
     working_dir: /app/frontend
@@ -21,7 +19,6 @@ services:
     networks:
       - proxy
     ports:
-      - '9000:9000'
       - '5173:8000'
     tty: true
     entrypoint: ['tini', '--']

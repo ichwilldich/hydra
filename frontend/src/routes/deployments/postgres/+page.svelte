@@ -1,3 +1,3 @@
 <div class="flex h-full items-center justify-center">
-  <p>Dashboard WIP</p>
+  <p>Postgres WIP</p>
 </div>

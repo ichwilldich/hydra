@@ -25,9 +25,7 @@
     <AppSidebar />
     <Sidebar.Trigger class="absolute top-3 left-3 flex md:hidden" />
     <main class="min-h-screen min-w-0 flex-1">
-      <div class="w-full">
-        {@render children?.()}
-      </div>
+      {@render children?.()}
     </main>
   </Sidebar.Provider>
 {:else}
