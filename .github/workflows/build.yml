@@ -43,7 +43,7 @@ jobs:
         id: cache
         with:
           path: cache-mount
-          key: cache-mount
+          key: cache-mount-${{ matrix.items.image }}
 
       - name: Restore Docker cache mounts
         uses: reproducible-containers/buildkit-cache-dance@v3
