@@ -438,6 +438,7 @@ name = "backend"
 version = "0.1.0"
 dependencies = [
  "argon2",
+ "async-trait",
  "axum",
  "axum-extra",
  "base64",
@@ -450,6 +451,7 @@ dependencies = [
  "entity",
  "eyre",
  "figment",
+ "futures",
  "http",
  "hyper-util",
  "jsonwebtoken",
@@ -459,6 +461,7 @@ dependencies = [
  "sea-orm",
  "serde",
  "serde_json",
+ "tar",
  "time",
  "tokio",
  "tower-http",
@@ -599,9 +602,9 @@ dependencies = [
 
 [[package]]
 name = "bollard"
-version = "0.19.3"
+version = "0.19.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec7646ee90964aa59e9f832a67182791396a19a5b1d76eb17599a8310a7e2e09"
+checksum = "87a52479c9237eb04047ddb94788c41ca0d26eaff8b697ecfbb4c32f7fdc3b1b"
 dependencies = [
  "base64",
  "bollard-stubs",
@@ -747,20 +750,20 @@ dependencies = [
 
 [[package]]
 name = "centaurus"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "923593208067010908b11c34f58c4c5232d463822a785779eb9c59cae5ec17ff"
+checksum = "f43726cb9db6e3383b25843c81b70349aa289641fbd9adf1f7146233c937458b"
 dependencies = [
  "argon2",
  "async-trait",
  "axum",
  "axum-extra",
  "base64",
+ "bollard",
  "centaurus-derive",
  "chrono",
  "color-eyre",
  "eyre",
- "hmac",
  "http",
  "jsonwebtoken",
  "k8s-openapi",
@@ -1469,6 +1472,18 @@ dependencies = [
  "toml",
  "uncased",
  "version_check",
+]
+
+[[package]]
+name = "filetime"
+version = "0.2.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc0505cd1b6fa6580283f6bdf70a73fcf4aba1184038c90902b92b3dd0df63ed"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "libredox",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -4612,6 +4627,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
+name = "tar"
+version = "0.4.44"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d863878d212c87a19c1a610eb53bb01fe12951c0501cf5a0d65f724914a667a"
+dependencies = [
+ "filetime",
+ "libc",
+ "xattr",
+]
+
+[[package]]
 name = "tempfile"
 version = "3.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5703,6 +5729,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05f360fc0b24296329c78fda852a1e9ae82de9cf7b27dae4b7f62f118f77b9ed"
 dependencies = [
  "tap",
+]
+
+[[package]]
+name = "xattr"
+version = "1.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32e45ad4206f6d2479085147f02bc2ef834ac85886624a23575ae137c8aa8156"
+dependencies = [
+ "libc",
+ "rustix",
 ]
 
 [[package]]

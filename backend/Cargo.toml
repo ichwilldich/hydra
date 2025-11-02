@@ -14,7 +14,7 @@ dotenv = "0.15.0"
 tracing = "0.1.41"
 figment = { version = "0.10.19", features = ["env", "toml"] }
 serde_json = "1.0.143"
-centaurus = { version = "0.4.0", features = [
+centaurus = { version = "0.4.3", features = [
   "axum",
   "logging",
   "argon2",
@@ -26,6 +26,7 @@ centaurus = { version = "0.4.0", features = [
   "uuid",
   "reqwest",
   "auth",
+  "docker",
 ] }
 uuid = { version = "1.18.1", features = ["v4"] }
 axum = { version = "0.8.4", features = [
@@ -57,8 +58,11 @@ reqwest = { version = "0.12.23", features = [
   "system-proxy",
   "multipart",
 ], default-features = false }
-bollard = { version = "0.19.3", features = ["ssl"] }
+bollard = { version = "0.19.4", features = ["ssl"] }
 clap = "4.5.51"
+futures = "0.3.31"
+tar = "0.4.44"
+async-trait = "0.1.89"
 
 [features]
 # only used for testing purposes
