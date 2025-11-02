@@ -9,7 +9,9 @@ WORKDIR /app/frontend
 COPY frontend/package.json ./
 COPY package-lock.json package.json ../
 
-RUN npm ci
+RUN \
+  --mount=type=cache,target=/app/frontend/node_modules,sharing=locked \
+  npm ci
 
 COPY frontend/svelte.config.js frontend/tsconfig.json frontend/vite.config.ts ./
 COPY frontend/src ./src
@@ -36,7 +38,10 @@ COPY backend/migration/Cargo.toml backend/migration/
 COPY ./Cargo.lock ./
 COPY --from=toml-patcher /Cargo.toml ./
 
-RUN cargo chef prepare --recipe-path recipe.json --bin backend
+RUN \
+  --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/app/target \
+  cargo chef prepare --recipe-path recipe.json --bin backend
 
 FROM ghcr.io/profiidev/images/rust-gnu-builder:main AS backend-builder
 
@@ -46,7 +51,10 @@ ARG FRONTEND_DIR
 
 COPY --from=backend-planner /app/recipe.json .
 
-RUN cargo chef cook --release --target $TARGET
+RUN \
+  --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/app/target \
+  cargo chef cook --release --target $TARGET
 
 COPY backend/Cargo.toml backend/
 COPY backend/build.rs backend/
@@ -58,8 +66,11 @@ COPY backend/migration/src backend/migration/src
 COPY ./Cargo.lock ./
 COPY --from=toml-patcher /Cargo.toml ./
 
-RUN cd backend && cargo build --release --target $TARGET
-RUN mv ./target/$TARGET/release/backend ./app
+RUN \
+  --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/app/target \
+  cd backend && cargo build --release --target $TARGET \
+  && mv ../target/$TARGET/release/backend ../app
 
 FROM node:22-alpine
 
