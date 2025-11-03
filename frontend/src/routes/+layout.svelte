@@ -19,7 +19,6 @@
 
   onMount(() => {
     test_token().then((valid) => {
-      console.log('Token valid:', valid);
       // can also be undefined if there was an error
       if (valid === false) {
         goto('/login');

@@ -5,6 +5,7 @@
     list_deployments,
     type DeploymentInfo
   } from '$lib/backend/postgres.svelte';
+  import { Plus } from '@lucide/svelte';
   import { Button, Input } from 'positron-components/components/ui';
 
   let name = $state('');
@@ -33,6 +34,14 @@
   };
 </script>
 
+<div class="flex w-full p-4">
+  <Button class="ml-auto" href="/deployments/postgres/create">
+    <Plus />
+    Create
+  </Button>
+</div>
+
+<!--
 <div class="flex h-full flex-col items-center justify-center">
   <p>Postgres WIP</p>
   <Input bind:value={name} placeholder="Database Name" />
@@ -46,3 +55,4 @@
     </div>
   {/each}
 </div>
+-->
