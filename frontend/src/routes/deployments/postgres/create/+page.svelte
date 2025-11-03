@@ -5,7 +5,6 @@
   import {
     BaseForm,
     FormDialog,
-    FormInput,
     type FormType
   } from 'positron-components/components/form';
   import {
@@ -15,13 +14,24 @@
   } from './schema.svelte';
   import { beforeNavigate, goto } from '$app/navigation';
   import type { BeforeNavigate } from '@sveltejs/kit';
+  import type { Component, ComponentProps, Snippet } from 'svelte';
+  import GeneralInformation from './GeneralInformation.svelte';
+  import Resources from './Resources.svelte';
 
   let { data }: { data: PageServerData } = $props();
+
+  interface StageProps {
+    form: any;
+    schema: any;
+    onsubmit: ComponentProps<typeof BaseForm>['onsubmit'];
+    footer: Snippet;
+  }
 
   interface Stage {
     title: string;
     form: any;
     schema: any;
+    content?: Component<StageProps>;
   }
 
   let stage = $state(0);
@@ -31,14 +41,30 @@
     {
       title: 'General Information',
       form: data.generalInformation,
-      schema: generalInformation
+      schema: generalInformation,
+      content: GeneralInformation
     },
-    { title: 'Resources', form: data.resources, schema: resources }
+    {
+      title: 'Resources',
+      form: data.resources,
+      schema: resources,
+      content: Resources
+    }
   ];
   let stage_data: (undefined | object)[] = $state(
     Array(stages.length).fill(undefined)
   );
   $inspect(stage_data).with(console.log);
+
+  const gotoStep = (step: number) => {
+    console.log(stages[stage].form.data);
+    stage_data[stage] = stages[stage].form.data;
+    stage = step;
+    stages[stage].form.data = {
+      ...stages[stage].form.data,
+      ...stage_data[stage]
+    };
+  };
 
   let attemptedNavigation: BeforeNavigate | undefined = undefined;
   let confirmed = false;
@@ -77,12 +103,7 @@
             variant={stage === index ? 'default' : 'outline'}
             onclick={() => {
               if (stage > index) {
-                stage_data[stage] = stages[stage].form.data;
-                stage = index;
-                stages[stage].form.data = {
-                  ...stages[stage].form.data,
-                  ...stage_data[stage]
-                };
+                gotoStep(index);
               }
             }}
           >
@@ -97,44 +118,24 @@
       <Card.Title>{stages[stage].title}</Card.Title>
     </Card.Header>
     <Card.Content>
-      <BaseForm
-        form={stages[stage].form}
-        schema={stages[stage].schema}
+      {@const current = stages[stage]}
+      <current.content
+        form={current.form}
+        schema={current.schema}
         onsubmit={(form: FormType<any>) => {
           if (stage < stages.length - 1) {
             stage_data[stage] = form.data;
             stage += 1;
+            stages[stage].form.data = {
+              ...stages[stage].form.data,
+              ...stage_data[stage]
+            };
           } else {
             // Final submission logic here
           }
           return undefined;
         }}
       >
-        {#snippet children({ props })}
-          {#if stage === 0}
-            <FormInput
-              {...props}
-              key="name"
-              label="Cluster Name"
-              placeholder="Enter name"
-            />
-          {:else if stage === 1}
-            <FormInput
-              {...props}
-              key="cpu"
-              label="CPU Cores"
-              type="number"
-              placeholder="Enter number of CPU cores"
-            />
-            <FormInput
-              {...props}
-              key="memory"
-              label="Memory (GB)"
-              type="number"
-              placeholder="Enter amount of memory"
-            />
-          {/if}
-        {/snippet}
         {#snippet footer()}
           <Card.Footer class="w-full gap-2 px-0">
             <Button
@@ -143,12 +144,7 @@
               disabled={stage === 0}
               onclick={() => {
                 if (stage > 0) {
-                  stage_data[stage] = stages[stage].form.data;
-                  stage -= 1;
-                  stages[stage].form.data = {
-                    ...stages[stage].form.data,
-                    ...stage_data[stage]
-                  };
+                  gotoStep(stage - 1);
                 }
               }}
             >
@@ -168,7 +164,7 @@
             </Button>
           </Card.Footer>
         {/snippet}
-      </BaseForm>
+      </current.content>
     </Card.Content>
   </Card.Root>
 </div>

@@ -40,19 +40,3 @@
     Create
   </Button>
 </div>
-
-<!--
-<div class="flex h-full flex-col items-center justify-center">
-  <p>Postgres WIP</p>
-  <Input bind:value={name} placeholder="Database Name" />
-  <Button onclick={create}>Create</Button>
-  <p>Deployments:</p>
-  {#each deployments as deployment}
-    <div class="mt-2 w-full max-w-md rounded border p-2">
-      <p><strong>{deployment.name}</strong></p>
-      <p>ID: {deployment.uuid}</p>
-      <Button onclick={() => remove(deployment.uuid)}>Delete</Button>
-    </div>
-  {/each}
-</div>
--->
