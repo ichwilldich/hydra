@@ -43,7 +43,8 @@ jobs:
         id: cache
         with:
           path: cache-mount
-          key: cache-mount-${{ matrix.items.image }}
+          key: cache-mount-${{ matrix.items.image }}-${{ github.sha }}
+          restore-keys: cache-mount-${{ matrix.items.image }}-
 
       - name: Restore Docker cache mounts
         uses: reproducible-containers/buildkit-cache-dance@v3
@@ -51,6 +52,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           cache-dir: cache-mount
           dockerfile: ${{ matrix.items.dockerfile }}
+          save-always: true
 
       - name: Login to GHCR
         uses: docker/login-action@v3
