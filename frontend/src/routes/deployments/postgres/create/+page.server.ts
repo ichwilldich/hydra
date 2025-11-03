@@ -1,6 +1,10 @@
 import { superValidate } from 'sveltekit-superforms';
 import type { PageServerLoad } from './$types';
-import { cancelDeployment, generalInformation, resources } from './schema.svelte';
+import {
+  cancelDeployment,
+  generalInformation,
+  resources
+} from './schema.svelte';
 import { zod4 } from 'sveltekit-superforms/adapters';
 
 export const load: PageServerLoad = async () => {

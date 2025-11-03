@@ -99,7 +99,7 @@
         {#each stages as _, index}
           <Badge
             class={'flex size-6 rounded-full' +
-              (stage > index ? ' p-0 cursor-pointer' : '')}
+              (stage > index ? ' cursor-pointer p-0' : '')}
             variant={stage === index ? 'default' : 'outline'}
             onclick={() => {
               if (stage > index) {
