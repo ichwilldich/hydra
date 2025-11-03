@@ -10,6 +10,7 @@ COPY frontend/package.json ./
 COPY package-lock.json package.json ../
 
 RUN \
+  --mount=type=cache,target=/app/node_modules,sharing=locked \
   --mount=type=cache,target=/app/frontend/node_modules,sharing=locked \
   npm ci
 
@@ -17,7 +18,10 @@ COPY frontend/svelte.config.js frontend/tsconfig.json frontend/vite.config.ts ./
 COPY frontend/src ./src
 COPY frontend/static ./static
 
-RUN npm run build
+RUN \
+  --mount=type=cache,target=/app/node_modules,sharing=locked \
+  --mount=type=cache,target=/app/frontend/node_modules,sharing=locked \
+  npm run build
 
 FROM ghcr.io/profiidev/images/rust-gnu-builder:main AS toml-patcher
 
