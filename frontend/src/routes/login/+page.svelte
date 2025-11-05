@@ -1,11 +1,6 @@
 <script lang="ts">
   import { Button, Card, toast } from 'positron-components/components/ui';
-  import {
-    BaseForm,
-    FormInput,
-    type FormType
-  } from 'positron-components/components/form';
-  import type { PageServerData } from './$types';
+  import { BaseForm, FormInput, type FormValue } from 'positron-components/components/form';
   import { loginSchema } from './schema.svelte';
   import { Database, LoaderCircle } from '@lucide/svelte';
   import { password_login } from '$lib/backend/auth.svelte';
@@ -19,8 +14,6 @@
   } from '$lib/backend/sso.svelte';
   import { browser } from '$app/environment';
   import { page } from '$app/state';
-
-  const { data }: { data: PageServerData } = $props();
 
   let sso_error: string | null = $derived(page.url.searchParams.get('error'));
   let sso_config: SSOConfig | undefined = $state();
@@ -54,8 +47,8 @@
     }
   });
 
-  const onsubmit = async (form: FormType<any>) => {
-    let ret = await password_login(form.data.username, form.data.password);
+  const onsubmit = async (form: FormValue<typeof loginSchema>) => {
+    let ret = await password_login(form.username, form.password);
 
     if (ret === RequestError.Unauthorized) {
       return { error: 'Invalid username or password.' };
@@ -96,7 +89,6 @@
         <BaseForm
           isLoading={false}
           {onsubmit}
-          form={data}
           schema={loginSchema}
           class="p-6 md:p-8"
         >

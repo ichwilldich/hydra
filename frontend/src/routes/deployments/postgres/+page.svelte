@@ -6,7 +6,7 @@
     type DeploymentInfo
   } from '$lib/backend/postgres.svelte';
   import { Plus } from '@lucide/svelte';
-  import { Button, Input } from 'positron-components/components/ui';
+  import { Button } from 'positron-components/components/ui';
 
   let name = $state('');
   let deployments: DeploymentInfo[] = $state([]);
@@ -39,4 +39,12 @@
     <Plus />
     Create
   </Button>
+  {#each deployments as deployment}
+    <div class="flex items-center gap-2">
+      <span>{deployment.name}</span>
+      <Button variant="outline" onclick={() => remove(deployment.uuid)}>
+        Delete
+      </Button>
+    </div>
+  {/each}
 </div>

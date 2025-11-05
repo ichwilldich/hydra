@@ -1,69 +1,98 @@
 <script lang="ts">
-  import { CheckIcon } from '@lucide/svelte';
-  import { Badge, Button, Card } from 'positron-components/components/ui';
-  import type { PageServerData } from './$types';
+  import { ArrowLeft, ArrowRight, Ban, CheckIcon, Plus } from '@lucide/svelte';
+  import {
+    Badge,
+    Button,
+    Card,
+    Spinner
+  } from 'positron-components/components/ui';
   import {
     BaseForm,
     FormDialog,
-    type FormType
+    type FormRecord
   } from 'positron-components/components/form';
   import {
     cancelDeployment,
     generalInformation,
+    reformatData,
     resources
   } from './schema.svelte';
   import { beforeNavigate, goto } from '$app/navigation';
   import type { BeforeNavigate } from '@sveltejs/kit';
-  import type { Component, ComponentProps, Snippet } from 'svelte';
+  import type {
+    Component,
+    ComponentProps,
+    Snippet,
+    SvelteComponent
+  } from 'svelte';
   import GeneralInformation from './GeneralInformation.svelte';
   import Resources from './Resources.svelte';
-
-  let { data }: { data: PageServerData } = $props();
+  import { create_deployment } from '$lib/backend/postgres.svelte';
 
   interface StageProps {
-    form: any;
-    schema: any;
+    initialValue?: any;
     onsubmit: ComponentProps<typeof BaseForm>['onsubmit'];
-    footer: Snippet;
+    footer: Snippet<[{ isLoading: boolean }]>;
+    isLoading: boolean;
   }
+
+  type StageComponent = Component<
+    StageProps,
+    { getValue: () => object | undefined }
+  >;
 
   interface Stage {
     title: string;
-    form: any;
     schema: any;
-    content?: Component<StageProps>;
+    content: StageComponent;
+    data: object;
   }
 
   let stage = $state(0);
   let cancelOpen = $state(false);
+  let form: undefined | SvelteComponent = $state();
+  let isLoading = $state(false);
 
   let stages: Stage[] = [
     {
       title: 'General Information',
-      form: data.generalInformation,
       schema: generalInformation,
-      content: GeneralInformation
+      content: GeneralInformation,
+      data: {}
     },
     {
       title: 'Resources',
-      form: data.resources,
       schema: resources,
-      content: Resources
+      content: Resources,
+      data: {}
     }
   ];
-  let stage_data: (undefined | object)[] = $state(
-    Array(stages.length).fill(undefined)
-  );
-  $inspect(stage_data).with(console.log);
 
   const gotoStep = (step: number) => {
-    console.log(stages[stage].form.data);
-    stage_data[stage] = stages[stage].form.data;
+    stages[stage].data = form?.getValue() || {};
     stage = step;
-    stages[stage].form.data = {
-      ...stages[stage].form.data,
-      ...stage_data[stage]
-    };
+  };
+
+  const submit = async (form: FormRecord) => {
+    stages[stage].data = form;
+    if (stage < stages.length - 1) {
+      stage += 1;
+    } else {
+      // Final submission logic here
+      let rawData = stages.reduce((acc, s) => ({ ...acc, ...s.data }), {});
+      let data = reformatData(rawData);
+
+      let res = await create_deployment(data);
+      if (res) {
+        return { error: 'Error creating deployment.' };
+      } else {
+        setTimeout(() => {
+          confirmed = true;
+          goto('/deployments/postgres');
+        });
+      }
+    }
+    return undefined;
   };
 
   let attemptedNavigation: BeforeNavigate | undefined = undefined;
@@ -120,47 +149,49 @@
     <Card.Content>
       {@const current = stages[stage]}
       <current.content
-        form={current.form}
-        schema={current.schema}
-        onsubmit={(form: FormType<any>) => {
-          if (stage < stages.length - 1) {
-            stage_data[stage] = form.data;
-            stage += 1;
-            stages[stage].form.data = {
-              ...stages[stage].form.data,
-              ...stage_data[stage]
-            };
-          } else {
-            // Final submission logic here
-          }
-          return undefined;
-        }}
+        bind:this={form}
+        initialValue={current.data}
+        onsubmit={submit}
+        bind:isLoading
       >
-        {#snippet footer()}
+        {#snippet footer({ isLoading })}
           <Card.Footer class="w-full gap-2 px-0">
             <Button
               class="cursor-pointer"
               variant="outline"
-              disabled={stage === 0}
+              disabled={stage === 0 || isLoading}
               onclick={() => {
                 if (stage > 0) {
                   gotoStep(stage - 1);
                 }
               }}
             >
+              <ArrowLeft />
               Previous
             </Button>
             <Button
               class="ml-auto cursor-pointer"
               variant="outline"
+              disabled={isLoading}
               onclick={() => {
                 cancelOpen = true;
               }}
             >
+              <Ban />
               Cancel
             </Button>
-            <Button class="cursor-pointer" type="submit">
-              {#if stage === stages.length - 1}Create{:else}Next{/if}
+            <Button class="cursor-pointer" type="submit" disabled={isLoading}>
+              {#if stage === stages.length - 1}
+                Create
+                {#if isLoading}
+                  <Spinner />
+                {:else}
+                  <Plus />
+                {/if}
+              {:else}
+                Next
+                <ArrowRight />
+              {/if}
             </Button>
           </Card.Footer>
         {/snippet}
@@ -174,6 +205,5 @@
   confirm="Cancel"
   onsubmit={cancelConfirm}
   bind:open={cancelOpen}
-  form={data.cancelDeployment}
   schema={cancelDeployment}
 />
