@@ -1,6 +1,10 @@
 <script lang="ts">
   import { Button, Card, toast } from 'positron-components/components/ui';
-  import { BaseForm, FormInput, type FormValue } from 'positron-components/components/form';
+  import {
+    BaseForm,
+    FormInput,
+    type FormValue
+  } from 'positron-components/components/form';
   import { loginSchema } from './schema.svelte';
   import { Database, LoaderCircle } from '@lucide/svelte';
   import { password_login } from '$lib/backend/auth.svelte';
