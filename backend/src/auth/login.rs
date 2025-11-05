@@ -56,7 +56,12 @@ async fn authenticate(
   }
 
   debug!("User authenticated: {}", user.id);
-  cookies = cookies.add(jwt.create_token::<InternalAuth>(user.id, AuthType::Internal)?);
+  cookies = cookies.add(jwt.create_token::<InternalAuth>(
+    user.id,
+    AuthType::Internal,
+    user.name,
+    user.email,
+  )?);
 
   Ok((cookies, TokenRes))
 }

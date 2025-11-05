@@ -1,5 +1,5 @@
-use axum::Extension;
-use centaurus::{FromReqExtension, db::init::Connection, error::Result, router_extension};
+use axum::{Extension, extract::FromRequestParts};
+use centaurus::{db::init::Connection, error::Result, router_extension};
 
 pub use env::EnvConfig;
 use tracing::instrument;
@@ -19,7 +19,8 @@ router_extension!(
   }
 );
 
-#[derive(Clone, FromReqExtension, Debug)]
+#[derive(Clone, FromRequestParts, Debug)]
+#[from_request(via(Extension))]
 pub struct AppConfig {
   pub config: MergedConfig,
 }

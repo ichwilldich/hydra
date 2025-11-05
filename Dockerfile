@@ -36,7 +36,10 @@ COPY backend/migration/Cargo.toml backend/migration/
 COPY ./Cargo.lock ./
 COPY --from=toml-patcher /Cargo.toml ./
 
-RUN cargo chef prepare --recipe-path recipe.json --bin backend
+RUN \
+  --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/app/target \
+  cargo chef prepare --recipe-path recipe.json --bin backend
 
 FROM ghcr.io/profiidev/images/rust-gnu-builder:main AS backend-builder
 
@@ -46,7 +49,10 @@ ARG FRONTEND_DIR
 
 COPY --from=backend-planner /app/recipe.json .
 
-RUN cargo chef cook --release --target $TARGET
+RUN \
+  --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/app/target \
+  cargo chef cook --release --target $TARGET
 
 COPY backend/Cargo.toml backend/
 COPY backend/build.rs backend/
@@ -58,8 +64,11 @@ COPY backend/migration/src backend/migration/src
 COPY ./Cargo.lock ./
 COPY --from=toml-patcher /Cargo.toml ./
 
-RUN cd backend && cargo build --release --target $TARGET
-RUN mv ./target/$TARGET/release/backend ./app
+RUN \
+  --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/app/target \
+  cd backend && cargo build --release --target $TARGET \
+  && mv ../target/$TARGET/release/backend ../app
 
 FROM node:22-alpine
 
@@ -75,6 +84,6 @@ WORKDIR /app
 COPY --from=frontend-builder /app/frontend/build /app/frontend
 COPY --from=frontend-builder /app/frontend/package.json /app/frontend/package.json
 COPY --from=frontend-builder /app/package-lock.json /app/package-lock.json
-COPY --from=backend-builder /app/app /usr/local/bin/
+COPY --from=backend-builder /app/app /usr/local/bin/hydra
 
-CMD ["app"]
+CMD ["hydra", "server"]

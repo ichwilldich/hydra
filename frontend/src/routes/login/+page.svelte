@@ -3,9 +3,8 @@
   import {
     BaseForm,
     FormInput,
-    type FormType
+    type FormValue
   } from 'positron-components/components/form';
-  import type { PageServerData } from './$types';
   import { loginSchema } from './schema.svelte';
   import { Database, LoaderCircle } from '@lucide/svelte';
   import { password_login } from '$lib/backend/auth.svelte';
@@ -19,8 +18,6 @@
   } from '$lib/backend/sso.svelte';
   import { browser } from '$app/environment';
   import { page } from '$app/state';
-
-  const { data }: { data: PageServerData } = $props();
 
   let sso_error: string | null = $derived(page.url.searchParams.get('error'));
   let sso_config: SSOConfig | undefined = $state();
@@ -54,13 +51,8 @@
     }
   });
 
-  const loginForm = {
-    schema: loginSchema,
-    form: data
-  };
-
-  const onsubmit = async (form: FormType<any>) => {
-    let ret = await password_login(form.data.username, form.data.password);
+  const onsubmit = async (form: FormValue<typeof loginSchema>) => {
+    let ret = await password_login(form.username, form.password);
 
     if (ret === RequestError.Unauthorized) {
       return { error: 'Invalid username or password.' };
@@ -101,8 +93,7 @@
         <BaseForm
           isLoading={false}
           {onsubmit}
-          confirm="Login"
-          form={loginForm}
+          schema={loginSchema}
           class="p-6 md:p-8"
         >
           {#snippet children({ props })}
@@ -132,9 +123,9 @@
               {...props}
             />
           {/snippet}
-          {#snippet footer({ children })}
+          {#snippet footer({ defaultBtn })}
             <br />
-            {@render children()}
+            {@render defaultBtn({ content: 'Login' })}
             {#if sso_config && sso_config?.sso_type !== SSOType.None}
               <div
                 class="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t"
@@ -164,7 +155,7 @@
         <div class="relative hidden overflow-hidden md:block">
           <!-- Blur Background -->
           <div
-            class="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-violet-500/10 to-indigo-500/20 backdrop-blur-sm"
+            class="absolute inset-0 bg-linear-to-br from-purple-500/20 via-violet-500/10 to-indigo-500/20 backdrop-blur-sm"
           ></div>
 
           <!-- Dynamic Curves -->
@@ -181,7 +172,7 @@
             <div class="mb-6 flex items-center gap-3">
               <Database class="h-8 w-8 text-purple-600" />
               <h2
-                class="bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-3xl font-bold text-transparent"
+                class="bg-linear-to-r from-purple-600 to-violet-600 bg-clip-text text-3xl font-bold text-transparent"
               >
                 Hydra
               </h2>

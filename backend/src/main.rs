@@ -1,4 +1,5 @@
-use backend::App;
+use backend::Cli;
+use clap::Parser;
 #[cfg(debug_assertions)]
 use dotenv::dotenv;
 
@@ -7,6 +8,6 @@ async fn main() {
   #[cfg(debug_assertions)]
   dotenv().ok();
 
-  let app = App::new().await;
-  app.run().await;
+  let cli = Cli::parse();
+  cli.run().await;
 }

@@ -12,12 +12,17 @@ use centaurus::{
 use tokio::{fs, net::TcpListener};
 use tracing::{info, instrument};
 
+pub use crate::cli::Cli;
 use crate::config::{AppConfig, EnvConfig};
 
 mod auth;
+mod cli;
 mod config;
+mod connector;
 mod db;
+mod deployment;
 mod frontend;
+mod user;
 
 #[derive(Debug)]
 pub struct App {
@@ -71,6 +76,8 @@ async fn router(config: &EnvConfig) -> Router {
       "/api",
       Router::new()
         .nest("/auth", auth::router())
+        .nest("/user", user::router())
+        .nest("/deployment", deployment::router())
         .merge(health::router())
         .metrics_route()
         .await,
@@ -83,6 +90,7 @@ router_extension!(
   async fn state(self, env_config: EnvConfig) -> Self {
     use auth::auth;
     use config::config;
+    use connector::connector;
     use frontend::frontend;
 
     let db = init_db::<migration::Migrator>(
@@ -101,6 +109,8 @@ router_extension!(
       .frontend()
       .await
       .config(&db)
+      .await
+      .connector(&env_config)
       .await
       .layer(Extension(db))
       .layer(Extension(env_config))

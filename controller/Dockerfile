@@ -18,7 +18,10 @@ COPY controller/Cargo.toml controller/
 COPY ./Cargo.lock ./
 COPY --from=toml-patcher /Cargo.toml ./
 
-RUN cargo chef prepare --recipe-path recipe.json --bin controller
+RUN \
+  --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/app/target \
+  cargo chef prepare --recipe-path recipe.json --bin controller
 
 FROM ghcr.io/profiidev/images/rust-gnu-builder:main AS backend-builder
 
@@ -27,15 +30,21 @@ ARG RUSTFLAGS
 
 COPY --from=backend-planner /app/recipe.json .
 
-RUN cargo chef cook --release --target $TARGET
+RUN \
+  --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/app/target \
+  cargo chef cook --release --target $TARGET
 
 COPY controller/Cargo.toml controller/
 COPY controller/src controller/src
 COPY ./Cargo.lock ./
 COPY --from=toml-patcher /Cargo.toml ./
 
-RUN cd controller && cargo build --release --target $TARGET
-RUN mv ./target/$TARGET/release/controller ./app
+RUN \
+  --mount=type=cache,target=/usr/local/cargo/registry \
+  --mount=type=cache,target=/app/target \
+  cd controller && cargo build --release --target $TARGET \
+  && mv ../target/$TARGET/release/controller ../app
 
 FROM gcr.io/distroless/static:latest
 

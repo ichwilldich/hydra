@@ -7,12 +7,24 @@
     Toaster
   } from 'positron-components/components/ui';
   import { page } from '$app/state';
+  import { onMount } from 'svelte';
+  import { test_token } from '$lib/backend/auth.svelte';
+  import { goto } from '$app/navigation';
 
   interface Props {
     children?: import('svelte').Snippet;
   }
 
   let { children }: Props = $props();
+
+  onMount(() => {
+    test_token().then((valid) => {
+      // can also be undefined if there was an error
+      if (valid === false) {
+        goto('/login');
+      }
+    });
+  });
 
   const noLayout = ['/login', '/oauth', '/oauth/logout'];
 </script>
@@ -25,9 +37,7 @@
     <AppSidebar />
     <Sidebar.Trigger class="absolute top-3 left-3 flex md:hidden" />
     <main class="min-h-screen min-w-0 flex-1">
-      <div class="w-full">
-        {@render children?.()}
-      </div>
+      {@render children?.()}
     </main>
   </Sidebar.Provider>
 {:else}

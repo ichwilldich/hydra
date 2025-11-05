@@ -252,6 +252,8 @@ struct TokenRes {
 #[derive(Deserialize)]
 pub struct AuthInfo {
   pub sub: String,
+  pub email: String,
+  pub name: String,
 }
 
 #[instrument(skip(jwt, config, oidc_state, cookies))]
@@ -272,7 +274,6 @@ async fn oidc_callback(
     if cookie.value() != state.to_string() {
       bail!(BAD_REQUEST, "OIDC state mismatch");
     }
-    cookies = cookies.remove(Cookie::from(OIDC_STATE));
 
     if let Some(error) = error {
       ("/login", Some(error))
@@ -315,7 +316,8 @@ async fn oidc_callback(
       let res: AuthInfo = res.json().await?;
 
       debug!("OIDC user authenticated: {}", res.sub);
-      cookies = cookies.add(jwt.create_token::<AllAuth>(res.sub, AuthType::Oidc)?);
+      cookies =
+        cookies.add(jwt.create_token::<AllAuth>(res.sub, AuthType::Oidc, res.name, res.email)?);
 
       ("/", None)
     } else {
@@ -324,6 +326,8 @@ async fn oidc_callback(
   } else {
     ("/login", Some("oidc_not_configured".to_string()))
   };
+
+  cookies = cookies.remove(Cookie::from(OIDC_STATE));
 
   let mut url = config.base_url;
   url.set_path(path);

@@ -80,11 +80,13 @@ mod test {
     let user_name = "test_user".to_string();
     let user_password = "hashed_password".to_string();
     let user_salt = "salt".to_string();
+    let user_email = "test@example.com".to_string();
     let user = user::Model {
       id: user_id,
       name: user_name.clone(),
       password: user_password.clone(),
       salt: user_salt.clone(),
+      email: user_email.clone(),
     };
 
     // Test create_user
@@ -112,6 +114,7 @@ mod test {
     assert_eq!(fetched_user_by_id.name, user_name);
     assert_eq!(fetched_user_by_id.password, user_password);
     assert_eq!(fetched_user_by_id.salt, user_salt);
+    assert_eq!(fetched_user_by_id.email, user_email);
 
     // Test list_users
     let users = user_table.list_users().await.expect("Failed to list users");

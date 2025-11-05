@@ -37,6 +37,8 @@ pub struct JwtClaims {
   pub iss: String,
   pub sub: String,
   pub r#type: AuthType,
+  pub email: String,
+  pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -62,6 +64,8 @@ impl JwtState {
     &self,
     uuid: T::UserID,
     r#type: AuthType,
+    name: String,
+    email: String,
   ) -> Result<Cookie<'c>> {
     let exp = Utc::now()
       .checked_add_signed(Duration::seconds(self.exp))
@@ -73,6 +77,8 @@ impl JwtState {
       iss: self.iss.clone(),
       sub: uuid.to_string(),
       r#type,
+      name,
+      email,
     };
 
     let token = encode(&self.header, &claims, &self.encoding_key)
@@ -172,14 +178,18 @@ mod test {
     dbg!(&jwt_state.encoding_key);
 
     let user_id = Uuid::new_v4();
+    let name = "Test User".to_string();
+    let email = "test@example.com".to_string();
     let cookie = jwt_state
-      .create_token::<InternalAuth>(user_id, AuthType::Internal)
+      .create_token::<InternalAuth>(user_id, AuthType::Internal, name.clone(), email.clone())
       .unwrap();
     let token = cookie.value().to_string();
     let claims = jwt_state.validate_token(&token).unwrap();
     assert_eq!(claims.sub, user_id.to_string());
     assert_eq!(claims.iss, config.auth.jwt_iss);
     assert_eq!(claims.r#type, AuthType::Internal);
+    assert_eq!(claims.name, name);
+    assert_eq!(claims.email, email);
   }
 
   #[tokio::test]

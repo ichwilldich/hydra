@@ -3,7 +3,6 @@ import { browser } from '$app/environment';
 import {
   post,
   get,
-  ContentType,
   ResponseType,
   RequestError
 } from 'positron-components/backend';
@@ -38,20 +37,33 @@ export const password_login = async (name: string, password: string) => {
   }
 
   let encrypted_password = encrypt.encrypt(password);
-  let res = await post<undefined>(
-    '/api/auth/auth',
-    ResponseType.None,
-    ContentType.Json,
-    JSON.stringify({
-      name,
-      password: encrypted_password
-    })
-  );
+  let res = await post<undefined>('/api/auth/auth', ResponseType.None, {
+    name,
+    password: encrypted_password
+  });
 
   if (typeof res === 'string') {
     if (res === RequestError.Unauthorized) {
       fetch_key();
     }
+    return res;
+  }
+};
+
+export const logout = async () => {
+  let res = await post<undefined>(
+    '/api/auth/logout',
+    ResponseType.None,
+    undefined
+  );
+
+  return res;
+};
+
+export const test_token = async () => {
+  let res = await get<boolean>('/api/auth/test_token', ResponseType.Json);
+
+  if (typeof res === 'boolean') {
     return res;
   }
 };

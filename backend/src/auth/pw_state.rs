@@ -60,6 +60,7 @@ pub async fn init_pw_state(config: &EnvConfig, db: &Connection) -> PasswordState
       name: config.auth.initial_user_username.clone(),
       password,
       salt,
+      email: config.auth.initial_user_email.clone(),
     };
 
     if let Ok(user) = db.user().get_user_by_name(user.name.clone()).await {
