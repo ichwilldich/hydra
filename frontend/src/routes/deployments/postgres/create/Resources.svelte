@@ -38,7 +38,7 @@
         {...props}
         class="w-83"
         key="storage_size"
-        label="Storage (MB)"
+        label="Storage Size"
         placeholder="Enter storage in MB"
         type="number"
       />

@@ -11,12 +11,7 @@
     FormDialog,
     type FormRecord
   } from 'positron-components/components/form';
-  import {
-    cancelDeployment,
-    generalInformation,
-    reformatData,
-    resources
-  } from './schema.svelte';
+  import { cancelDeployment, reformatData } from './schema.svelte';
   import { beforeNavigate, goto } from '$app/navigation';
   import type { BeforeNavigate } from '@sveltejs/kit';
   import type {
@@ -28,6 +23,7 @@
   import GeneralInformation from './GeneralInformation.svelte';
   import Resources from './Resources.svelte';
   import { create_deployment } from '$lib/backend/postgres.svelte';
+  import Summary from './Summary.svelte';
 
   interface StageProps {
     initialValue?: any;
@@ -43,7 +39,6 @@
 
   interface Stage {
     title: string;
-    schema: any;
     content: StageComponent;
     data: object;
   }
@@ -56,14 +51,17 @@
   let stages: Stage[] = [
     {
       title: 'General Information',
-      schema: generalInformation,
       content: GeneralInformation,
       data: {}
     },
     {
       title: 'Resources',
-      schema: resources,
       content: Resources,
+      data: {}
+    },
+    {
+      title: 'Summary',
+      content: Summary,
       data: {}
     }
   ];
@@ -75,14 +73,15 @@
 
   const submit = async (form: FormRecord) => {
     stages[stage].data = form;
-    if (stage < stages.length - 1) {
+    if (stage < stages.length - 2) {
       stage += 1;
-    } else {
-      // Final submission logic here
+    } else if (stage === stages.length - 2) {
+      stage += 1;
       let rawData = stages.reduce((acc, s) => ({ ...acc, ...s.data }), {});
       let data = reformatData(rawData);
-
-      let res = await create_deployment(data);
+      stages[stage].data = data;
+    } else {
+      let res = await create_deployment(form as any);
       if (res) {
         return { error: 'Error creating deployment.' };
       } else {
@@ -188,6 +187,9 @@
                 {:else}
                   <Plus />
                 {/if}
+              {:else if stage === stages.length - 2}
+                Summary
+                <ArrowRight />
               {:else}
                 Next
                 <ArrowRight />

@@ -44,6 +44,10 @@ export const resources = z.object({
     .default(['GB'])
 });
 
+export const summary = z.object({
+  _phantom_summary: z.string().default('')
+});
+
 export const cancelDeployment = z.object({
   _phantom_cancel: z.string().default('')
 });
