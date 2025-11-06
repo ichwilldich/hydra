@@ -31,15 +31,9 @@ Advanced Options:
 - Extra Database Engine Parameters: Additional parameters to configure the database engine.
 - Monitoring: Enable or disable monitoring for the deployment.
 
-
 storage ref:
-  docker:
-    - host file path (must exist)
-    - file upload
-  kubernetes:
-    - file upload
-    - config map ref
-    - secret ref
+docker: - host file path (must exist) - file upload
+kubernetes: - file upload - config map ref - secret ref
 
 !
 ssl
@@ -61,7 +55,6 @@ primary_conninfo (use env)
 primary_slot_name (just some name)
 sync_replication_slots = true
 hot_standby = on (restart)
-
 
 stats TODO (replication lag monitoring)
 archiving for replication TODO
