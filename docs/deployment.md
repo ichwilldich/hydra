@@ -7,10 +7,10 @@ General Options:
 - Name: The display name for the deployment.
 - Namespace: The Kubernetes namespace where the deployment will be created. (only Kubernetes)
 - Database Version: The version of postgres to deploy.
+- Replicas: The number of instances to deploy.
 
 Resource Options:
 
-- Replicas: The number of instances to deploy.
 - Storage Size: The amount of storage allocated for the deployment per instance (in MB). (only Kubernetes)
 - Storage Class: The storage class to use for the deployment. (only Kubernetes)
 - CPU Requests: The amount of CPU requested for each instance (in millicores).
@@ -25,11 +25,31 @@ Backup Options:
 - Backup Retention: The number of backups to retain.
 - Backup Location: The location where backups will be stored.
 
-Advanced Options:
+Connection Options:
 
 - External Access: Enable or disable external access to the deployment.
+- SSL Configuration: Configure SSL settings for secure connections.
+
+Monitoring Options:
+
+- Toggle: Enable or disable monitoring for the deployment.
+- Allow external access: Enable or disable external access to the monitoring endpoints.
+- Deploy monitoring resources: Choose whether to deploy monitoring resources alongside the database deployment. (only Kubernetes)
+
+Advanced Options:
+
+- Allow Alter System: Enable or disable the ability to use ALTER SYSTEM commands.
 - Extra Database Engine Parameters: Additional parameters to configure the database engine.
-- Monitoring: Enable or disable monitoring for the deployment.
+
+Hardcoded Parameters (required for replication):
+
+- wal_level = replica
+- hot_standby = on
+- max_wal_senders = replica count \* 1.1 (primary only)
+- max_replication_slots = replica count \* 1.1 (primary only)
+- primary_conninfo = use environment variables (replica only)
+- primary_slot_name = some name (replica only)
+- sync_replication_slots = true (replica only)
 
 storage ref:
 docker: - host file path (must exist) - file upload

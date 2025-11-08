@@ -9,14 +9,20 @@ use crate::{config::EnvConfig, connector::docker::DockerConnector};
 
 pub mod docker;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Copy)]
 pub enum ConnectorType {
   Docker,
 }
 
 #[derive(FromRequestParts, Clone)]
 #[from_request(via(Extension))]
-pub struct PlatformConnection(Arc<dyn Connector>);
+pub struct PlatformConnection(Arc<dyn Connector>, ConnectorType);
+
+impl PlatformConnection {
+  pub fn typ(&self) -> ConnectorType {
+    self.1
+  }
+}
 
 router_extension!(
   async fn connector(self, config: &EnvConfig) -> Self {
@@ -43,7 +49,7 @@ impl ConnectorType {
       ConnectorType::Docker => Arc::new(DockerConnector::new()?),
     };
 
-    Ok(PlatformConnection(connector))
+    Ok(PlatformConnection(connector, *self))
   }
 }
 

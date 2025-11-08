@@ -22,7 +22,11 @@
   } from 'svelte';
   import GeneralInformation from './GeneralInformation.svelte';
   import Resources from './Resources.svelte';
-  import { create_deployment } from '$lib/backend/postgres.svelte';
+  import {
+    create_deployment,
+    system_info,
+    type SystemInfo
+  } from '$lib/backend/postgres.svelte';
   import Summary from './Summary.svelte';
 
   interface StageProps {
@@ -46,7 +50,12 @@
   let stage = $state(0);
   let cancelOpen = $state(false);
   let form: undefined | SvelteComponent = $state();
-  let isLoading = $state(false);
+  let isLoading = $state(true);
+  let sys_info: SystemInfo | undefined = $state();
+  system_info().then((info) => {
+    sys_info = info;
+    isLoading = false;
+  });
 
   let stages: Stage[] = [
     {

@@ -4,18 +4,32 @@ use axum::{
   routing::{delete, get, post},
 };
 use centaurus::error::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::connector::{
-  Deployment, DeploymentInfo, DeploymentType, PlatformConnection, StorageOptions,
+  ConnectorType, Deployment, DeploymentInfo, DeploymentType, PlatformConnection, StorageOptions,
 };
 
 pub fn router() -> Router {
   Router::new()
+    .route("/info", get(system_info))
     .route("/", post(create_deployment))
     .route("/", get(list_deployments))
     .route("/", delete(remove_deployment))
+}
+
+#[derive(Serialize)]
+struct SystemInfo {
+  connector: ConnectorType,
+}
+
+async fn system_info() -> Result<Json<SystemInfo>> {
+  let info = SystemInfo {
+    connector: ConnectorType::Docker,
+  };
+
+  Ok(Json(info))
 }
 
 #[derive(FromRequest, Deserialize)]

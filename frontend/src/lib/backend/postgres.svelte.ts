@@ -1,4 +1,5 @@
 import { delete_, get, post, ResponseType } from 'positron-components/backend';
+import type { Connect } from 'vite';
 
 export interface CreateDeployment {
   name: string;
@@ -39,4 +40,23 @@ export const delete_deployment = async (uuid: string) => {
   );
 
   return res;
+};
+
+export enum ConnectorType {
+  Docker = 'Docker'
+}
+
+export interface SystemInfo {
+  connector: ConnectorType;
+}
+
+export const system_info = async () => {
+  let res = await get<SystemInfo>(
+    '/api/deployment/postgres/info',
+    ResponseType.Json
+  );
+
+  if (typeof res === 'object') {
+    return res;
+  }
 };
