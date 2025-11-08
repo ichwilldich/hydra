@@ -34,6 +34,7 @@
     onsubmit: ComponentProps<typeof BaseForm>['onsubmit'];
     footer: Snippet<[{ isLoading: boolean }]>;
     isLoading: boolean;
+    sys_info?: SystemInfo;
   }
 
   type StageComponent = Component<
@@ -64,7 +65,7 @@
       data: {}
     },
     {
-      title: 'Resources',
+      title: 'Resources (per replica)',
       content: Resources,
       data: {}
     },
@@ -161,6 +162,7 @@
         initialValue={current.data}
         onsubmit={submit}
         bind:isLoading
+        {sys_info}
       >
         {#snippet footer({ isLoading })}
           <Card.Footer class="w-full gap-2 px-0">

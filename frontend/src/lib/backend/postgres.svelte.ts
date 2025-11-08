@@ -43,11 +43,13 @@ export const delete_deployment = async (uuid: string) => {
 };
 
 export enum ConnectorType {
-  Docker = 'Docker'
+  Docker = 'Docker',
+  Kubernetes = 'Kubernetes'
 }
 
 export interface SystemInfo {
   connector: ConnectorType;
+  namespaces: string[];
 }
 
 export const system_info = async () => {

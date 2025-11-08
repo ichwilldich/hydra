@@ -22,11 +22,13 @@ pub fn router() -> Router {
 #[derive(Serialize)]
 struct SystemInfo {
   connector: ConnectorType,
+  namespaces: Vec<String>,
 }
 
 async fn system_info() -> Result<Json<SystemInfo>> {
   let info = SystemInfo {
     connector: ConnectorType::Docker,
+    namespaces: vec![],
   };
 
   Ok(Json(info))

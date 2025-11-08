@@ -36,16 +36,53 @@
     <div class="flex w-full gap-2">
       <FormInput
         {...props}
-        class="w-83"
-        key="storage_size"
-        label="Storage Size"
-        placeholder="Enter storage in MB"
+        class="w-89"
+        key="memory_request_size"
+        label="Memory Request Size"
+        placeholder="Enter amount of memory"
         type="number"
       />
       <FormSelect
         {...props}
+        class="w-16"
+        key="memory_request_size_unit"
+        label="Unit"
+        single={true}
+        data={Object.keys(units).map((unit) => ({ value: unit, label: unit }))}
+      />
+    </div>
+    <div class="flex w-full gap-2">
+      <FormInput
+        {...props}
+        class="w-89"
+        key="memory_limit_size"
+        label="Memory Limit Size"
+        placeholder="Enter amount of memory"
+        type="number"
+      />
+      <FormSelect
+        {...props}
+        class="w-16"
+        key="memory_limit_size_unit"
+        label="Unit"
+        single={true}
+        data={Object.keys(units).map((unit) => ({ value: unit, label: unit }))}
+      />
+    </div>
+    <div class="flex w-full justify-between gap-2">
+      <FormInput
+        {...props}
+        class="w-89"
+        key="storage_size"
+        label="Storage Size"
+        placeholder="Enter amount of storage"
+        type="number"
+      />
+      <FormSelect
+        {...props}
+        class="w-16"
         key="storage_size_unit"
-        label="Storage Unit"
+        label="Unit"
         single={true}
         data={Object.keys(units).map((unit) => ({ value: unit, label: unit }))}
       />
