@@ -51,16 +51,33 @@ const unit = z
   .max(1)
   .default(['GB']);
 
-export const resources = z.object({
-  storage_size: amount,
-  storage_size_unit: unit,
-  memory_request_size: amount,
-  memory_request_size_unit: unit,
-  memory_limit_size: amount,
-  memory_limit_size_unit: unit,
-  cpu_request: amount,
-  cpu_limit: amount
-});
+export const resources = z
+  .object({
+    storage_size: amount,
+    storage_size_unit: unit,
+    memory_request_size: amount,
+    memory_request_size_unit: unit,
+    memory_limit_size: amount,
+    memory_limit_size_unit: unit,
+    cpu_request: amount,
+    cpu_limit: amount
+  })
+  .superRefine((data, ctx) => {
+    let memory_request_bytes =
+      data.memory_request_size *
+      (units as Record<string, number>)[data.memory_request_size_unit[0]];
+    let memory_limit_bytes =
+      data.memory_limit_size *
+      (units as Record<string, number>)[data.memory_limit_size_unit[0]];
+
+    if (memory_limit_bytes < memory_request_bytes) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['memory_limit_size', 'memory_request_size'],
+        message: 'Memory limit must be greater than or equal to request'
+      });
+    }
+  });
 
 export const backup = z.object({
   backups_enabled: z.boolean().default(false),
@@ -68,6 +85,14 @@ export const backup = z.object({
   backup_retention: z.number().min(1, 'Must be at least 1').default(7),
   backup_storage_location: z.string().default('')
 });
+
+export enum CertSource {
+  Text = 'Text',
+  File = 'File',
+  Reference = 'Reference',
+  HostFilePath = 'HostFilePath',
+  Auto = 'Auto'
+}
 
 export enum RefType {
   ConfigMap = 'ConfigMap',
@@ -78,16 +103,23 @@ export const connection = z
   .object({
     external_access: z.boolean().default(false),
     ssl_enabled: z.boolean().default(false),
+    ssl_cert_source: z.enum(CertSource).optional(),
+    ssl_cert_text: z.string().optional(),
     ssl_cert_file: z.file().optional(),
     ssl_cert_ref_type: z.enum(RefType).optional(),
     ssl_cert_ref_name: z.string().optional(),
     ssl_cert_ref_key: z.string().optional(),
     ssl_cert_host_file_path: z.string().optional(),
+    ssl_key_source: z.enum(CertSource).optional(),
+    ssl_key_text: z.string().optional(),
     ssl_key_file: z.file().optional(),
     ssl_key_ref_type: z.enum(RefType).optional(),
     ssl_key_ref_name: z.string().optional(),
     ssl_key_ref_key: z.string().optional(),
     ssl_key_host_file_path: z.string().optional(),
+    ssl_ca_enabled: z.boolean().default(false),
+    ssl_ca_source: z.enum(CertSource).optional(),
+    ssl_ca_text: z.string().optional(),
     ssl_ca_file: z.file().optional(),
     ssl_ca_ref_type: z.enum(RefType).optional(),
     ssl_ca_ref_name: z.string().optional(),
@@ -96,31 +128,147 @@ export const connection = z
   })
   .superRefine((data, ctx) => {
     if (data.ssl_enabled) {
-      let cert_set =
-        data.ssl_cert_file ||
-        (data.ssl_cert_ref_type &&
-          data.ssl_cert_ref_name &&
-          data.ssl_cert_ref_key) ||
-        data.ssl_cert_host_file_path;
-      let key_set =
-        data.ssl_key_file ||
-        (data.ssl_key_ref_type &&
-          data.ssl_key_ref_name &&
-          data.ssl_key_ref_key) ||
-        data.ssl_key_host_file_path;
-
-      if (!cert_set) {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'You must provide an SSL certificate'
-        });
+      switch (data.ssl_cert_source) {
+        case CertSource.Text:
+          if (!data.ssl_cert_text) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_cert_text'],
+              message: 'SSL certificate is required'
+            });
+          }
+          break;
+        case CertSource.File:
+          if (!data.ssl_cert_file) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_cert_file'],
+              message: 'SSL certificate is required'
+            });
+          }
+          break;
+        case CertSource.Reference:
+          if (
+            !(
+              data.ssl_cert_ref_type &&
+              data.ssl_cert_ref_name &&
+              data.ssl_cert_ref_key
+            )
+          ) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_cert_ref_name', 'ssl_cert_ref_key'],
+              message: 'SSL certificate is required'
+            });
+          }
+          break;
+        case CertSource.HostFilePath:
+          if (!data.ssl_cert_host_file_path) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_cert_host_file_path'],
+              message: 'SSL certificate is required'
+            });
+          }
+          break;
+        case CertSource.Auto:
+          break;
       }
 
-      if (!key_set) {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'You must provide an SSL key'
-        });
+      switch (data.ssl_key_source) {
+        case CertSource.Text:
+          if (!data.ssl_key_text) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_key_text'],
+              message: 'SSL key is required'
+            });
+          }
+          break;
+        case CertSource.File:
+          if (!data.ssl_key_file) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_key_file'],
+              message: 'SSL key is required'
+            });
+          }
+          break;
+        case CertSource.Reference:
+          if (
+            !(
+              data.ssl_key_ref_type &&
+              data.ssl_key_ref_name &&
+              data.ssl_key_ref_key
+            )
+          ) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_key_ref_name', 'ssl_key_ref_key'],
+              message: 'SSL key is required'
+            });
+          }
+          break;
+        case CertSource.HostFilePath:
+          if (!data.ssl_key_host_file_path) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_key_host_file_path'],
+              message: 'SSL key is required'
+            });
+          }
+          break;
+        case CertSource.Auto:
+          break;
+      }
+    }
+
+    if (data.ssl_ca_enabled) {
+      switch (data.ssl_ca_source) {
+        case CertSource.Text:
+          if (!data.ssl_ca_text) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_ca_text'],
+              message: 'SSL CA is required'
+            });
+          }
+          break;
+        case CertSource.File:
+          if (!data.ssl_ca_file) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_ca_file'],
+              message: 'SSL CA is required'
+            });
+          }
+          break;
+        case CertSource.Reference:
+          if (
+            !(
+              data.ssl_ca_ref_type &&
+              data.ssl_ca_ref_name &&
+              data.ssl_ca_ref_key
+            )
+          ) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_ca_ref_name', 'ssl_ca_ref_key'],
+              message: 'SSL CA is required'
+            });
+          }
+          break;
+        case CertSource.HostFilePath:
+          if (!data.ssl_ca_host_file_path) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['ssl_ca_host_file_path'],
+              message: 'SSL CA is required'
+            });
+          }
+          break;
+        case CertSource.Auto:
+          break;
       }
     }
   });
