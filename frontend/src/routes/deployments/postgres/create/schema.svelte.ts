@@ -100,36 +100,47 @@ export enum RefType {
   Secret = 'Secret'
 }
 
+const certSource = z
+  .array(z.enum(CertSource))
+  .min(1)
+  .max(1)
+  .default([CertSource.Auto]);
+const refType = z
+  .array(z.enum(RefType))
+  .min(1)
+  .max(1)
+  .default([RefType.Secret]);
+
 export const connection = z
   .object({
     external_access: z.boolean().default(false),
     ssl_enabled: z.boolean().default(false),
-    ssl_cert_source: z.enum(CertSource).optional(),
+    ssl_cert_source: certSource,
     ssl_cert_text: z.string().optional(),
     ssl_cert_file: z.file().optional(),
-    ssl_cert_ref_type: z.enum(RefType).optional(),
+    ssl_cert_ref_type: refType,
     ssl_cert_ref_name: z.string().optional(),
     ssl_cert_ref_key: z.string().optional(),
     ssl_cert_host_file_path: z.string().optional(),
-    ssl_key_source: z.enum(CertSource).optional(),
+    ssl_key_source: certSource,
     ssl_key_text: z.string().optional(),
     ssl_key_file: z.file().optional(),
-    ssl_key_ref_type: z.enum(RefType).optional(),
+    ssl_key_ref_type: refType,
     ssl_key_ref_name: z.string().optional(),
     ssl_key_ref_key: z.string().optional(),
     ssl_key_host_file_path: z.string().optional(),
     ssl_ca_enabled: z.boolean().default(false),
-    ssl_ca_source: z.enum(CertSource).optional(),
+    ssl_ca_source: certSource,
     ssl_ca_text: z.string().optional(),
     ssl_ca_file: z.file().optional(),
-    ssl_ca_ref_type: z.enum(RefType).optional(),
+    ssl_ca_ref_type: refType,
     ssl_ca_ref_name: z.string().optional(),
     ssl_ca_ref_key: z.string().optional(),
     ssl_ca_host_file_path: z.string().optional()
   })
   .superRefine((data, ctx) => {
     if (data.ssl_enabled) {
-      switch (data.ssl_cert_source) {
+      switch (data.ssl_cert_source[0]) {
         case CertSource.Text:
           if (!data.ssl_cert_text) {
             ctx.addIssue({
@@ -176,7 +187,7 @@ export const connection = z
           break;
       }
 
-      switch (data.ssl_key_source) {
+      switch (data.ssl_key_source[0]) {
         case CertSource.Text:
           if (!data.ssl_key_text) {
             ctx.addIssue({
@@ -225,7 +236,7 @@ export const connection = z
     }
 
     if (data.ssl_ca_enabled) {
-      switch (data.ssl_ca_source) {
+      switch (data.ssl_ca_source[0]) {
         case CertSource.Text:
           if (!data.ssl_ca_text) {
             ctx.addIssue({

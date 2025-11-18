@@ -27,6 +27,9 @@
   } from '$lib/backend/postgres.svelte';
   import Summary from './Summary.svelte';
   import Backup from './Backup.svelte';
+  import Connection from './Connection.svelte';
+  import Monitoring from './Monitoring.svelte';
+  import Advanced from './Advanced.svelte';
 
   interface StageProps {
     initialValue?: any;
@@ -68,8 +71,23 @@
       data: {}
     },
     {
+      title: 'Connection',
+      content: Connection,
+      data: {}
+    },
+    {
       title: 'Backup Configuration',
       content: Backup,
+      data: {}
+    },
+    {
+      title: 'Monitoring',
+      content: Monitoring,
+      data: {}
+    },
+    {
+      title: 'Advanced',
+      content: Advanced,
       data: {}
     },
     {
