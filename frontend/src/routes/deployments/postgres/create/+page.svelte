@@ -26,6 +26,7 @@
     type SystemInfo
   } from '$lib/backend/postgres.svelte';
   import Summary from './Summary.svelte';
+  import Backup from './Backup.svelte';
 
   interface StageProps {
     initialValue?: any;
@@ -64,6 +65,11 @@
     {
       title: 'Resources (per replica)',
       content: Resources,
+      data: {}
+    },
+    {
+      title: 'Backup Configuration',
+      content: Backup,
       data: {}
     },
     {
