@@ -38,7 +38,7 @@
         {...props}
         class="w-89"
         key="memory_request_size"
-        label="Memory Request Size"
+        label="Memory Request"
         placeholder="Enter amount of memory"
         type="number"
       />
@@ -56,7 +56,7 @@
         {...props}
         class="w-89"
         key="memory_limit_size"
-        label="Memory Limit Size"
+        label="Memory Limit"
         placeholder="Enter amount of memory"
         type="number"
       />
@@ -74,7 +74,7 @@
         {...props}
         class="w-89"
         key="storage_size"
-        label="Storage Size"
+        label="Disk Storage"
         placeholder="Enter amount of storage"
         type="number"
       />
@@ -87,5 +87,19 @@
         data={Object.keys(units).map((unit) => ({ value: unit, label: unit }))}
       />
     </div>
+    <FormInput
+      {...props}
+      key="cpu_request"
+      label="CPU Request (in millicores - 1000m = 1 Core)"
+      placeholder="Enter amount of CPU"
+      type="number"
+    />
+    <FormInput
+      {...props}
+      key="cpu_limit"
+      label="CPU Limit (in millicores - 1000m = 1 Core)"
+      placeholder="Enter amount of CPU"
+      type="number"
+    />
   {/snippet}
 </BaseForm>

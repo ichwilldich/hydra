@@ -45,6 +45,7 @@ export const generalInformation = z.object({
 });
 
 const amount = z.number().gt(0, 'Must be greater than 0').default(1);
+const cpu = z.number().gt(1, 'Must be greater than 1').default(1000);
 const unit = z
   .array(z.enum(Object.keys(units)))
   .min(1)
@@ -59,8 +60,8 @@ export const resources = z
     memory_request_size_unit: unit,
     memory_limit_size: amount,
     memory_limit_size_unit: unit,
-    cpu_request: amount,
-    cpu_limit: amount
+    cpu_request: cpu,
+    cpu_limit: cpu
   })
   .superRefine((data, ctx) => {
     let memory_request_bytes =

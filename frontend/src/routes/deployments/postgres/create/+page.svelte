@@ -8,12 +8,10 @@
   } from 'positron-components/components/ui';
   import {
     BaseForm,
-    FormDialog,
     type FormRecord
   } from 'positron-components/components/form';
-  import { cancelDeployment, reformatData } from './schema.svelte';
-  import { beforeNavigate, goto } from '$app/navigation';
-  import type { BeforeNavigate } from '@sveltejs/kit';
+  import { reformatData } from './schema.svelte';
+  import { goto } from '$app/navigation';
   import type {
     Component,
     ComponentProps,
@@ -49,7 +47,6 @@
   }
 
   let stage = $state(0);
-  let cancelOpen = $state(false);
   let form: undefined | SvelteComponent = $state();
   let isLoading = $state(true);
   let sys_info: SystemInfo | undefined = $state();
@@ -96,36 +93,10 @@
         return { error: 'Error creating deployment.' };
       } else {
         setTimeout(() => {
-          confirmed = true;
           goto('/deployments/postgres');
         });
       }
     }
-    return undefined;
-  };
-
-  let attemptedNavigation: BeforeNavigate | undefined = undefined;
-  let confirmed = false;
-  beforeNavigate((nav) => {
-    // allow navigation if it was already confirmed
-    if (confirmed) {
-      confirmed = false;
-      return;
-    }
-
-    // don't show the dialog if the user is leaving the page because the browser built-in
-    // dialog will be shown instead
-    if (nav.type !== 'leave') {
-      attemptedNavigation = nav;
-      cancelOpen = true;
-    }
-    nav.cancel();
-  });
-
-  const cancelConfirm = () => {
-    confirmed = true;
-    goto(attemptedNavigation?.to?.url.pathname || '/deployments/postgres');
-
     return undefined;
   };
 </script>
@@ -184,7 +155,7 @@
               variant="outline"
               disabled={isLoading}
               onclick={() => {
-                cancelOpen = true;
+                goto('/deployments/postgres');
               }}
             >
               <Ban />
@@ -212,11 +183,3 @@
     </Card.Content>
   </Card.Root>
 </div>
-<FormDialog
-  title="Cancel Deployment Creation"
-  description="Are you sure you want to cancel creating this deployment? All progress will be lost."
-  confirm="Cancel"
-  onsubmit={cancelConfirm}
-  bind:open={cancelOpen}
-  schema={cancelDeployment}
-/>
