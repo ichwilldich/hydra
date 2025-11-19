@@ -51,7 +51,7 @@
       {/if}
       <FormSwitch
         {...props}
-        key="external_access"
+        key="monitoring_external_access"
         label="Enable External Access for Monitoring"
       />
       {#if sys_info?.connector === ConnectorType.Docker}

@@ -1,9 +1,92 @@
 import { delete_, get, post, ResponseType } from 'positron-components/backend';
-import type { Connect } from 'vite';
+import type {
+  CertSource,
+  PostgresVersion
+} from '../../routes/deployments/postgres/create/schema.svelte';
 
 export interface CreateDeployment {
   name: string;
+  namespace?: string;
+  version: PostgresVersion;
+  replicas: number;
+  resources: CreateDeploymentResources;
+  backup: CreateDeploymentBackup;
+  connection: CreateDeploymentConnection;
+  monitoring: CreateDeploymentMonitoring;
+  advanced: CreateDeploymentAdvanced;
+}
+
+export interface CreateDeploymentResources {
   storage_mb: number;
+  memory_request_mb: number;
+  memory_limit_mb: number;
+  cpu_request_millicores: number;
+  cpu_limit_millicores: number;
+}
+
+export type CreateDeploymentBackup =
+  | {
+      enabled: false;
+    }
+  | {
+      enabled: true;
+      schedule: string;
+      retention_days: number;
+      storage_location: string;
+    };
+
+export type CreateDeploymentConnection = {
+  external_access: boolean;
+} & (
+  | {
+      ssl_enabled: false;
+    }
+  | ({
+      ssl_enabled: true;
+      ssl_cert: SslFile;
+      ssl_key: SslFile;
+    } & (
+      | {
+          ca_enabled: false;
+        }
+      | {
+          ca_enabled: true;
+          ssl_ca: SslFile;
+        }
+    ))
+);
+
+export type SslFile =
+  | {
+      type: CertSource.Auto;
+    }
+  | {
+      type: CertSource.Text;
+      content: string;
+    }
+  | {
+      type: CertSource.Reference;
+      ref_name: string;
+      ref_key: string;
+    }
+  | {
+      type: CertSource.HostFilePath;
+      host_file_path: string;
+    };
+
+export type CreateDeploymentMonitoring =
+  | {
+      enabled: false;
+    }
+  | {
+      enabled: true;
+      external_access: boolean;
+      deploy_monitoring: boolean;
+    };
+
+export interface CreateDeploymentAdvanced {
+  allow_alter_system: boolean;
+  extra_params: Record<string, string>;
 }
 
 export const create_deployment = async (payload: CreateDeployment) => {

@@ -1,4 +1,12 @@
-import type { CreateDeployment } from '$lib/backend/postgres.svelte';
+import type {
+  CreateDeployment,
+  CreateDeploymentAdvanced,
+  CreateDeploymentBackup,
+  CreateDeploymentConnection,
+  CreateDeploymentMonitoring,
+  CreateDeploymentResources,
+  SslFile
+} from '$lib/backend/postgres.svelte';
 import type { FormRecord } from 'positron-components/components/form';
 import z from 'zod';
 
@@ -23,17 +31,124 @@ export enum PostgresVersion {
   V18 = '18'
 }
 
-export const reformatData = (data: FormRecord): CreateDeployment => {
-  let storage_size = data.storage_size as number;
-  let storage_size_unit = (data.storage_size_unit as string[])[0];
-  let storage_mb = Math.ceil(
-    (storage_size * (units as Record<string, number>)[storage_size_unit]) /
-      (1000 * 1000)
-  );
+export const reformatData = async (
+  data: FormRecord
+): Promise<CreateDeployment> => {
+  const getUnit = (key: string) => (data[key] as string[])[0];
+  const calcMb = (amountKey: string, unitKey: string) => {
+    const amount = data[amountKey] as number;
+    const unit = getUnit(unitKey);
+    return Math.ceil(
+      (amount * (units as Record<string, number>)[unit]) / (1000 * 1000)
+    );
+  };
+
+  const resources: CreateDeploymentResources = {
+    storage_mb: calcMb('storage_size', 'storage_size_unit'),
+    memory_request_mb: calcMb(
+      'memory_request_size',
+      'memory_request_size_unit'
+    ),
+    memory_limit_mb: calcMb('memory_limit_size', 'memory_limit_size_unit'),
+    cpu_request_millicores: data.cpu_request as number,
+    cpu_limit_millicores: data.cpu_limit as number
+  };
+
+  const backup: CreateDeploymentBackup = data.backups_enabled
+    ? {
+        enabled: true,
+        schedule: data.backup_schedule as string,
+        retention_days: data.backup_retention as number,
+        storage_location: data.backup_storage_location as string
+      }
+    : { enabled: false };
+
+  const formatSsl = async (prefix: string): Promise<SslFile> => {
+    const source = (data[`${prefix}_source`] as CertSource[])[0];
+    switch (source) {
+      case CertSource.Text:
+        return {
+          type: CertSource.Text,
+          content: data[`${prefix}_text`] as string
+        };
+      case CertSource.File:
+        let file = data[`${prefix}_file`] as File;
+        let content = await file.text();
+
+        return { type: CertSource.Text, content };
+      case CertSource.Reference:
+        return {
+          type: CertSource.Reference,
+          ref_name: data[`${prefix}_ref_name`] as string,
+          ref_key: data[`${prefix}_ref_key`] as string
+        };
+      case CertSource.HostFilePath:
+        return {
+          type: CertSource.HostFilePath,
+          host_file_path: data[`${prefix}_host_file_path`] as string
+        };
+      case CertSource.Auto:
+        return { type: CertSource.Auto };
+    }
+  };
+
+  let connection: CreateDeploymentConnection = {
+    external_access: data.external_access as boolean,
+    ssl_enabled: false
+  };
+
+  if (data.ssl_enabled) {
+    const ssl_cert = await formatSsl('ssl_cert');
+    const ssl_key = await formatSsl('ssl_key');
+
+    let caPart: { ca_enabled: false } | { ca_enabled: true; ssl_ca: SslFile } =
+      { ca_enabled: false };
+    if (data.ssl_ca_enabled) {
+      caPart = { ca_enabled: true, ssl_ca: await formatSsl('ssl_ca') };
+    }
+
+    connection = {
+      external_access: data.external_access as boolean,
+      ssl_enabled: true,
+      ssl_cert,
+      ssl_key,
+      ...caPart
+    };
+  }
+
+  const monitoring: CreateDeploymentMonitoring = data.monitoring_enabled
+    ? {
+        enabled: true,
+        external_access: data.monitoring_external_access as boolean,
+        deploy_monitoring: data.deploy_monitoring_resources as boolean
+      }
+    : { enabled: false };
+
+  const advanced: CreateDeploymentAdvanced = {
+    allow_alter_system: data.allow_alter_system as boolean,
+    extra_params: (data.extra_database_parameters as string)
+      .split(',')
+      .filter((p) => p.trim().length > 0)
+      .reduce(
+        (acc, curr) => {
+          const [k, v] = curr.split('=');
+          if (k && v) acc[k.trim()] = v.trim();
+          return acc;
+        },
+        {} as Record<string, string>
+      )
+  };
 
   return {
     name: data.name as string,
-    storage_mb
+    namespace: data.namespace as string,
+    version: (data.version as PostgresVersion[])[0],
+    replicas: data.replicas as number,
+    resources,
+    backup,
+    connection,
+    monitoring,
+    advanced
   };
 };
 
@@ -190,7 +305,7 @@ export const connection = z
 
 export const monitoring = z.object({
   monitoring_enabled: z.boolean().default(false),
-  external_access: z.boolean().default(false),
+  monitoring_external_access: z.boolean().default(false),
   deploy_monitoring_resources: z.boolean().default(true)
 });
 

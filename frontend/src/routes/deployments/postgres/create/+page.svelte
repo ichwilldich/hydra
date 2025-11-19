@@ -107,9 +107,9 @@
     if (stage < stages.length - 2) {
       stage += 1;
     } else if (stage === stages.length - 2) {
-      stage += 1;
       let rawData = stages.reduce((acc, s) => ({ ...acc, ...s.data }), {});
-      let data = reformatData(rawData);
+      let data = await reformatData(rawData);
+      stage += 1;
       stages[stage].data = data;
     } else {
       let res = await create_deployment(form as any);
