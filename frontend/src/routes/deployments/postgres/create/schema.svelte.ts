@@ -140,147 +140,50 @@ export const connection = z
   })
   .superRefine((data, ctx) => {
     if (data.ssl_enabled) {
-      switch (data.ssl_cert_source[0]) {
-        case CertSource.Text:
-          if (!data.ssl_cert_text) {
+      const check = (keyPart: string, key?: boolean) => {
+        // @ts-ignore
+        let source = data[`ssl_${keyPart}_source`][0];
+        if (source !== CertSource.Auto && source !== CertSource.Reference) {
+          let path =
+            source === CertSource.Text
+              ? `ssl_${keyPart}_text`
+              : source === CertSource.File
+                ? `ssl_${keyPart}_file`
+                : `ssl_${keyPart}_host_file_path`;
+          // @ts-ignore
+          let value = data[path];
+          if (!value) {
             ctx.addIssue({
               code: 'custom',
-              path: ['ssl_cert_text'],
-              message: 'SSL certificate is required'
+              path: [path],
+              message: key
+                ? 'SSL key is required'
+                : 'SSL certificate is required'
             });
           }
-          break;
-        case CertSource.File:
-          if (!data.ssl_cert_file) {
+        } else if (source === CertSource.Reference) {
+          if (!data.ssl_cert_ref_name) {
             ctx.addIssue({
               code: 'custom',
-              path: ['ssl_cert_file'],
-              message: 'SSL certificate is required'
+              path: [`ssl_${keyPart}_ref_name`],
+              message: 'Reference name is required'
             });
           }
-          break;
-        case CertSource.Reference:
-          if (
-            !(
-              data.ssl_cert_ref_type &&
-              data.ssl_cert_ref_name &&
-              data.ssl_cert_ref_key
-            )
-          ) {
+          if (!data.ssl_cert_ref_key) {
             ctx.addIssue({
               code: 'custom',
-              path: ['ssl_cert_ref_name', 'ssl_cert_ref_key'],
-              message: 'SSL certificate is required'
+              path: [`ssl_${keyPart}_ref_key`],
+              message: 'Reference key is required'
             });
           }
-          break;
-        case CertSource.HostFilePath:
-          if (!data.ssl_cert_host_file_path) {
-            ctx.addIssue({
-              code: 'custom',
-              path: ['ssl_cert_host_file_path'],
-              message: 'SSL certificate is required'
-            });
-          }
-          break;
-        case CertSource.Auto:
-          break;
-      }
+        }
+      };
 
-      switch (data.ssl_key_source[0]) {
-        case CertSource.Text:
-          if (!data.ssl_key_text) {
-            ctx.addIssue({
-              code: 'custom',
-              path: ['ssl_key_text'],
-              message: 'SSL key is required'
-            });
-          }
-          break;
-        case CertSource.File:
-          if (!data.ssl_key_file) {
-            ctx.addIssue({
-              code: 'custom',
-              path: ['ssl_key_file'],
-              message: 'SSL key is required'
-            });
-          }
-          break;
-        case CertSource.Reference:
-          if (
-            !(
-              data.ssl_key_ref_type &&
-              data.ssl_key_ref_name &&
-              data.ssl_key_ref_key
-            )
-          ) {
-            ctx.addIssue({
-              code: 'custom',
-              path: ['ssl_key_ref_name', 'ssl_key_ref_key'],
-              message: 'SSL key is required'
-            });
-          }
-          break;
-        case CertSource.HostFilePath:
-          if (!data.ssl_key_host_file_path) {
-            ctx.addIssue({
-              code: 'custom',
-              path: ['ssl_key_host_file_path'],
-              message: 'SSL key is required'
-            });
-          }
-          break;
-        case CertSource.Auto:
-          break;
-      }
-    }
+      check('cert');
+      check('key', true);
 
-    if (data.ssl_ca_enabled) {
-      switch (data.ssl_ca_source[0]) {
-        case CertSource.Text:
-          if (!data.ssl_ca_text) {
-            ctx.addIssue({
-              code: 'custom',
-              path: ['ssl_ca_text'],
-              message: 'SSL CA is required'
-            });
-          }
-          break;
-        case CertSource.File:
-          if (!data.ssl_ca_file) {
-            ctx.addIssue({
-              code: 'custom',
-              path: ['ssl_ca_file'],
-              message: 'SSL CA is required'
-            });
-          }
-          break;
-        case CertSource.Reference:
-          if (
-            !(
-              data.ssl_ca_ref_type &&
-              data.ssl_ca_ref_name &&
-              data.ssl_ca_ref_key
-            )
-          ) {
-            ctx.addIssue({
-              code: 'custom',
-              path: ['ssl_ca_ref_name', 'ssl_ca_ref_key'],
-              message: 'SSL CA is required'
-            });
-          }
-          break;
-        case CertSource.HostFilePath:
-          if (!data.ssl_ca_host_file_path) {
-            ctx.addIssue({
-              code: 'custom',
-              path: ['ssl_ca_host_file_path'],
-              message: 'SSL CA is required'
-            });
-          }
-          break;
-        case CertSource.Auto:
-          break;
+      if (data.ssl_ca_enabled) {
+        check('ca');
       }
     }
   });

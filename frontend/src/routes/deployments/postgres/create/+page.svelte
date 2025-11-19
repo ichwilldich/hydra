@@ -32,7 +32,7 @@
   import Advanced from './Advanced.svelte';
 
   interface StageProps {
-    initialValue?: any;
+    initialValue: any;
     onsubmit: ComponentProps<typeof BaseForm>['onsubmit'];
     footer: Snippet<[{ isLoading: boolean }]>;
     isLoading: boolean;

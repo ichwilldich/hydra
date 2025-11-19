@@ -38,7 +38,7 @@
       {...props}
       key="backups_enabled"
       label="Enable Backups"
-      onCheckedChange={(checked) => (backups_enabled = checked)}
+      onCheckedChange={(checked: boolean) => (backups_enabled = checked)}
     />
     {#if backups_enabled}
       <FormInput
