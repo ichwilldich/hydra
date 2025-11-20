@@ -196,12 +196,56 @@ export const resources = z
     }
   });
 
-export const backup = z.object({
-  backups_enabled: z.boolean().default(false),
-  backup_schedule: z.string().default('0 0 * * *'),
-  backup_retention: z.number().min(1, 'Must be at least 1').default(7),
-  backup_storage_location: z.string().default('')
-});
+let cronRegex =
+  /^((((\d+,)+\d+|(\d+(\/|-|#)\d+)|\d+L?|\*(\/\d+)?|L(-\d+)?|\?|[A-Z]{3}(-[A-Z]{3})?) ?){5,7})|(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|�s|ms|s|m|h))+)$/;
+
+export const backup = z
+  .object({
+    backups_enabled: z.boolean().default(false),
+    backup_schedule: z.string().optional().default('0 0 * * *'),
+    backup_retention: z
+      .number()
+      .min(1, 'Must be at least 1')
+      .optional()
+      .default(7),
+    backup_storage_location: z.string().array().default([])
+  })
+  .superRefine((data, ctx) => {
+    if (data.backups_enabled) {
+      if (!data.backup_schedule || data.backup_schedule.trim().length === 0) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['backup_schedule'],
+          message: 'Backup schedule is required'
+        });
+      } else if (!cronRegex.test(data.backup_schedule)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['backup_schedule'],
+          message: 'Backup schedule must be a valid cron expression'
+        });
+      }
+
+      if (data.backup_retention === undefined || data.backup_retention < 1) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['backup_retention'],
+          message: 'Backup retention must be at least 1'
+        });
+      }
+
+      if (
+        !data.backup_storage_location ||
+        data.backup_storage_location.length === 0
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['backup_storage_location'],
+          message: 'Backup storage location is required'
+        });
+      }
+    }
+  });
 
 export enum CertSource {
   Text = 'Text',

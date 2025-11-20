@@ -133,6 +133,7 @@ export enum ConnectorType {
 export interface SystemInfo {
   connector: ConnectorType;
   namespaces: string[];
+  backup_locations: string[];
 }
 
 export const system_info = async () => {

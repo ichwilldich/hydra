@@ -2,20 +2,23 @@
   import {
     BaseForm,
     FormInput,
+    FormSelect,
     FormSwitch,
     type FormValue
   } from 'positron-components/components/form';
   import type { ComponentProps, Snippet } from 'svelte';
   import { backup } from './schema.svelte';
+  import type { SystemInfo } from '$lib/backend/postgres.svelte';
 
   interface Props {
     initialValue?: FormValue<typeof backup>;
     onsubmit: ComponentProps<typeof BaseForm>['onsubmit'];
     footer: Snippet<[{ isLoading: boolean }]>;
     isLoading: boolean;
+    sys_info?: SystemInfo;
   }
 
-  let { initialValue, onsubmit, footer, isLoading }: Props = $props();
+  let { initialValue, onsubmit, footer, isLoading, sys_info }: Props = $props();
 
   let form: BaseForm<typeof backup> | undefined = $state();
   let backups_enabled = $state(initialValue?.backups_enabled ?? false);
@@ -55,12 +58,14 @@
         placeholder="Enter backup retention"
         type="number"
       />
-      <FormInput
+      <FormSelect
         {...props}
         key="backup_storage_location"
-        label="Backup Storage Location (TODO)"
-        placeholder="Enter backup storage location"
-        type="text"
+        label="Backup Storage Location"
+        data={sys_info?.backup_locations?.map((location) => ({
+          label: location,
+          value: location
+        })) ?? []}
       />
     {/if}
   {/snippet}
