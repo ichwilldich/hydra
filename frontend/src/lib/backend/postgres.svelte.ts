@@ -17,7 +17,7 @@ export interface CreateDeployment {
 }
 
 export interface CreateDeploymentResources {
-  storage_mb: number;
+  storage_mb?: number;
   memory_request_mb: number;
   memory_limit_mb: number;
   cpu_request_millicores: number;
@@ -26,10 +26,10 @@ export interface CreateDeploymentResources {
 
 export type CreateDeploymentBackup =
   | {
-      enabled: false;
+      enabled: 'disabled';
     }
   | {
-      enabled: true;
+      enabled: 'enabled';
       schedule: string;
       retention_days: number;
       storage_location: string;
@@ -39,21 +39,21 @@ export type CreateDeploymentConnection = {
   external_access: boolean;
 } & (
   | {
-      ssl_enabled: false;
+      ssl_enabled: 'disabled';
     }
-  | ({
-      ssl_enabled: true;
+  | {
+      ssl_enabled: 'enabled';
       ssl_cert: SslFile;
       ssl_key: SslFile;
-    } & (
-      | {
-          ca_enabled: false;
-        }
-      | {
-          ca_enabled: true;
-          ssl_ca: SslFile;
-        }
-    ))
+      ssl_ca:
+        | {
+            ca_enabled: 'disabled';
+          }
+        | {
+            ca_enabled: 'enabled';
+            ssl_ca: SslFile;
+          };
+    }
 );
 
 export type SslFile =
@@ -76,10 +76,10 @@ export type SslFile =
 
 export type CreateDeploymentMonitoring =
   | {
-      enabled: false;
+      enabled: 'disabled';
     }
   | {
-      enabled: true;
+      enabled: 'enabled';
       external_access: boolean;
       deploy_monitoring: boolean;
     };

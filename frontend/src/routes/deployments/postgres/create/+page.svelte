@@ -107,7 +107,10 @@
     if (stage < stages.length - 2) {
       stage += 1;
     } else if (stage === stages.length - 2) {
-      let rawData = stages.reduce((acc, s) => ({ ...acc, ...s.data }), {});
+      let rawData = stages
+        // last element is summary
+        .filter((_, i) => i < stages.length - 1)
+        .reduce((acc, s) => ({ ...acc, ...s.data }), {});
       let data = await reformatData(rawData);
       stage += 1;
       stages[stage].data = data;

@@ -78,22 +78,24 @@
         >
         <span class="text-muted-foreground">SSL:</span>
         <span
-          >{initialValue?.connection.ssl_enabled ? 'Enabled' : 'Disabled'}</span
+          >{initialValue?.connection.ssl_enabled === 'enabled'
+            ? 'Enabled'
+            : 'Disabled'}</span
         >
-        {#if initialValue?.connection.ssl_enabled}
+        {#if initialValue?.connection.ssl_enabled === 'enabled'}
           <span class="text-muted-foreground pl-2">Cert Source:</span>
           <span>{initialValue?.connection.ssl_cert.type}</span>
           <span class="text-muted-foreground pl-2">Key Source:</span>
           <span>{initialValue?.connection.ssl_key.type}</span>
           <span class="text-muted-foreground">Custom CA:</span>
           <span
-            >{initialValue?.connection.ca_enabled
+            >{initialValue?.connection.ssl_ca.ca_enabled === 'enabled'
               ? 'Enabled'
               : 'Disabled'}</span
           >
-          {#if initialValue?.connection.ca_enabled}
+          {#if initialValue?.connection.ssl_ca.ca_enabled === 'enabled'}
             <span class="text-muted-foreground pl-2">CA Source:</span>
-            <span>{initialValue?.connection.ssl_ca.type}</span>
+            <span>{initialValue?.connection.ssl_ca.ssl_ca.type}</span>
           {/if}
         {/if}
       </div>
@@ -103,8 +105,12 @@
       <h3 class="font-semibold">Backup Configuration</h3>
       <div class="ml-4 grid grid-cols-2 gap-x-4 text-sm">
         <span class="text-muted-foreground">Backups:</span>
-        <span>{initialValue?.backup.enabled ? 'Enabled' : 'Disabled'}</span>
-        {#if initialValue?.backup.enabled}
+        <span
+          >{initialValue?.backup.enabled === 'enabled'
+            ? 'Enabled'
+            : 'Disabled'}</span
+        >
+        {#if initialValue?.backup.enabled === 'enabled'}
           <span class="text-muted-foreground">Schedule:</span>
           <span>{initialValue?.backup.schedule}</span>
           <span class="text-muted-foreground">Retention:</span>
@@ -119,8 +125,12 @@
       <h3 class="font-semibold">Monitoring</h3>
       <div class="ml-4 grid grid-cols-2 gap-x-4 text-sm">
         <span class="text-muted-foreground">Monitoring:</span>
-        <span>{initialValue?.monitoring.enabled ? 'Enabled' : 'Disabled'}</span>
-        {#if initialValue?.monitoring.enabled}
+        <span
+          >{initialValue?.monitoring.enabled === 'enabled'
+            ? 'Enabled'
+            : 'Disabled'}</span
+        >
+        {#if initialValue?.monitoring.enabled === 'enabled'}
           {#if sys_info?.connector === ConnectorType.Kubernetes}
             <span class="text-muted-foreground">Deploy Resources:</span>
             <span

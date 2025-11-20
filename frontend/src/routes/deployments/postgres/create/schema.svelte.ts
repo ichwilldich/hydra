@@ -44,7 +44,10 @@ export const reformatData = async (
   };
 
   const resources: CreateDeploymentResources = {
-    storage_mb: calcMb('storage_size', 'storage_size_unit'),
+    storage_mb:
+      data['storage_size'] !== undefined
+        ? calcMb('storage_size', 'storage_size_unit')
+        : undefined,
     memory_request_mb: calcMb(
       'memory_request_size',
       'memory_request_size_unit'
@@ -56,12 +59,12 @@ export const reformatData = async (
 
   const backup: CreateDeploymentBackup = data.backups_enabled
     ? {
-        enabled: true,
+        enabled: 'enabled',
         schedule: data.backup_schedule as string,
         retention_days: data.backup_retention as number,
         storage_location: data.backup_storage_location as string
       }
-    : { enabled: false };
+    : { enabled: 'disabled' };
 
   const formatSsl = async (prefix: string): Promise<SslFile> => {
     const source = (data[`${prefix}_source`] as CertSource[])[0];
@@ -95,35 +98,36 @@ export const reformatData = async (
 
   let connection: CreateDeploymentConnection = {
     external_access: data.external_access as boolean,
-    ssl_enabled: false
+    ssl_enabled: 'disabled'
   };
 
   if (data.ssl_enabled) {
     const ssl_cert = await formatSsl('ssl_cert');
     const ssl_key = await formatSsl('ssl_key');
 
-    let caPart: { ca_enabled: false } | { ca_enabled: true; ssl_ca: SslFile } =
-      { ca_enabled: false };
+    let caPart:
+      | { ca_enabled: 'disabled' }
+      | { ca_enabled: 'enabled'; ssl_ca: SslFile } = { ca_enabled: 'disabled' };
     if (data.ssl_ca_enabled) {
-      caPart = { ca_enabled: true, ssl_ca: await formatSsl('ssl_ca') };
+      caPart = { ca_enabled: 'enabled', ssl_ca: await formatSsl('ssl_ca') };
     }
 
     connection = {
       external_access: data.external_access as boolean,
-      ssl_enabled: true,
+      ssl_enabled: 'enabled',
       ssl_cert,
       ssl_key,
-      ...caPart
+      ssl_ca: caPart
     };
   }
 
   const monitoring: CreateDeploymentMonitoring = data.monitoring_enabled
     ? {
-        enabled: true,
+        enabled: 'enabled',
         external_access: data.monitoring_external_access as boolean,
         deploy_monitoring: data.deploy_monitoring_resources as boolean
       }
-    : { enabled: false };
+    : { enabled: 'disabled' };
 
   const advanced: CreateDeploymentAdvanced = {
     allow_alter_system: data.allow_alter_system as boolean,

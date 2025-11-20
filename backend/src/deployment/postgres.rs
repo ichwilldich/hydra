@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use axum::{
   Json, Router,
   extract::FromRequest,
@@ -38,7 +40,96 @@ async fn system_info() -> Result<Json<SystemInfo>> {
 #[from_request(via(Json))]
 struct CreateDeployment {
   name: String,
-  storage_mb: u64,
+  namespace: Option<String>,
+  version: PostgresVersion,
+  replicas: u32,
+  resources: DeploymentResources,
+  backup: DeploymentBackup,
+  connection: DeploymentConnection,
+  monitoring: DeploymentMonitoring,
+  advanced: DeploymentAdvanced,
+}
+
+#[derive(Deserialize)]
+struct DeploymentResources {
+  storage_mb: Option<u64>,
+  memory_request_mb: u64,
+  memory_limit_mb: u64,
+  cpu_request_millicores: u64,
+  cpu_limit_millicores: u64,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "snake_case", tag = "enabled")]
+enum DeploymentBackup {
+  Disabled,
+  Enabled {
+    location: String,
+    schedule: String,
+    retention_days: u32,
+  },
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "snake_case", tag = "ssl_enabled")]
+enum DeploymentConnection {
+  Disabled {
+    external_access: bool,
+  },
+  Enabled {
+    external_access: bool,
+    ssl_cert: SslFile,
+    ssl_key: SslFile,
+    ssl_ca: SslCa,
+  },
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "snake_case", tag = "ca_enabled")]
+enum SslCa {
+  Disabled,
+  Enabled { ssl_ca: SslFile },
+}
+
+#[derive(Deserialize)]
+#[serde(tag = "type")]
+enum SslFile {
+  Auto,
+  Text { content: String },
+  Reference { ref_name: String, ref_key: String },
+  HostFilePath { host_file_path: String },
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "snake_case", tag = "enabled")]
+enum DeploymentMonitoring {
+  Disabled,
+  Enabled {
+    external_access: bool,
+    deploy_monitoring: bool,
+  },
+}
+
+#[derive(Deserialize)]
+struct DeploymentAdvanced {
+  allow_alter_system: bool,
+  extra_params: HashMap<String, String>,
+}
+
+#[derive(Deserialize)]
+enum PostgresVersion {
+  #[serde(rename = "13")]
+  V13,
+  #[serde(rename = "14")]
+  V14,
+  #[serde(rename = "15")]
+  V15,
+  #[serde(rename = "16")]
+  V16,
+  #[serde(rename = "17")]
+  V17,
+  #[serde(rename = "18")]
+  V18,
 }
 
 async fn create_deployment(conn: PlatformConnection, payload: CreateDeployment) -> Result<()> {
@@ -47,7 +138,7 @@ async fn create_deployment(conn: PlatformConnection, payload: CreateDeployment) 
     uuid: Uuid::new_v4(),
     typ: DeploymentType::Postgres,
     storage: StorageOptions {
-      size_mb: payload.storage_mb,
+      size_mb: payload.resources.storage_mb.unwrap_or(1000),
     },
   };
 
