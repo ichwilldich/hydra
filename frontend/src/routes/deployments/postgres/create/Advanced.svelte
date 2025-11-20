@@ -1,12 +1,12 @@
 <script lang="ts">
   import {
     BaseForm,
-    FormInput,
     FormSwitch,
     type FormValue
   } from 'positron-components/components/form';
   import type { ComponentProps, Snippet } from 'svelte';
   import { advanced } from './schema.svelte';
+  import FormArea from '$lib/components/form/FormArea.svelte';
 
   interface Props {
     initialValue?: FormValue<typeof advanced>;
@@ -38,11 +38,12 @@
       key="allow_alter_system"
       label="Allow ALTER SYSTEM"
     />
-    <FormInput
+    <FormArea
       {...props}
       key="extra_database_parameters"
       label="Extra Database Parameters"
-      placeholder="key=value,key2=value2"
+      placeholder="key=value
+key2=value2"
     />
   {/snippet}
 </BaseForm>

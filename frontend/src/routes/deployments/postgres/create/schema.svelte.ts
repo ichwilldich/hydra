@@ -67,9 +67,10 @@ export const reformatData = async (
     const source = (data[`${prefix}_source`] as CertSource[])[0];
     switch (source) {
       case CertSource.Text:
+        let raw_content = data[`${prefix}_text`] as string;
         return {
           type: CertSource.Text,
-          content: data[`${prefix}_text`] as string
+          content: raw_content
         };
       case CertSource.File:
         let file = data[`${prefix}_file`] as File;
@@ -127,7 +128,7 @@ export const reformatData = async (
   const advanced: CreateDeploymentAdvanced = {
     allow_alter_system: data.allow_alter_system as boolean,
     extra_params: (data.extra_database_parameters as string)
-      .split(',')
+      .split('\n')
       .filter((p) => p.trim().length > 0)
       .reduce(
         (acc, curr) => {
@@ -226,6 +227,9 @@ const refType = z
   .max(1)
   .default([RefType.Secret]);
 
+const pemBlockRegex =
+  /-----BEGIN [A-Z0-9 ]+-----\s*([A-Za-z0-9+/=\s]+)\s*-----END [A-Z0-9 ]+-----/;
+
 export const connection = z
   .object({
     external_access: z.boolean().default(false),
@@ -276,15 +280,29 @@ export const connection = z
                 : 'SSL certificate is required'
             });
           }
+
+          if (source === CertSource.Text && value) {
+            if (!pemBlockRegex.test(value)) {
+              ctx.addIssue({
+                code: 'custom',
+                path: [path],
+                message: key
+                  ? 'SSL key must be a valid PEM block'
+                  : 'SSL certificate must be a valid PEM block'
+              });
+            }
+          }
         } else if (source === CertSource.Reference) {
-          if (!data.ssl_cert_ref_name) {
+          // @ts-ignore
+          if (!data[`ssl_${keyPart}_ref_name`]) {
             ctx.addIssue({
               code: 'custom',
               path: [`ssl_${keyPart}_ref_name`],
               message: 'Reference name is required'
             });
           }
-          if (!data.ssl_cert_ref_key) {
+          // @ts-ignore
+          if (!data[`ssl_${keyPart}_ref_key`]) {
             ctx.addIssue({
               code: 'custom',
               path: [`ssl_${keyPart}_ref_key`],

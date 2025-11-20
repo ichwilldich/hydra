@@ -10,6 +10,7 @@
   } from 'positron-components/components/form';
   import { CertSource, connection, RefType } from './schema.svelte';
   import { ConnectorType, type SystemInfo } from '$lib/backend/postgres.svelte';
+  import FormArea from '$lib/components/form/FormArea.svelte';
 
   type Value = FormValue<typeof connection>;
   type Key = FormPath<Value>;
@@ -65,14 +66,13 @@
   onSelectChange={(v) => (src = v[0])}
 />
 {#if src === CertSource.Text}
-  <FormInput
+  <FormArea
     {...props}
     key={textKey}
-    label={key ? 'Raw Key Content' : 'Raw Certificate Content'}
+    label={key ? 'Key Content' : 'Certificate Content'}
     placeholder={key
       ? '-----BEGIN PRIVATE KEY-----...'
       : '-----BEGIN CERTIFICATE-----...'}
-    type="textarea"
   />
 {:else if src === CertSource.File}
   <FormFile
